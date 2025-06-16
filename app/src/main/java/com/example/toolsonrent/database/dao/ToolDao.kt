@@ -25,4 +25,10 @@ interface ToolDao {
 
     @Query("SELECT * FROM tools WHERE id = :toolId")
     fun getToolById(toolId: Int): Flow<Tool?>
+
+    @Query("SELECT COUNT(id) FROM tools WHERE isAvailable = 1")
+    fun getAvailableToolsCount(): kotlinx.coroutines.flow.Flow<Int>
+
+    @Query("SELECT COUNT(id) FROM tools WHERE isAvailable = 0")
+    fun getRentedToolsCount(): kotlinx.coroutines.flow.Flow<Int>
 }

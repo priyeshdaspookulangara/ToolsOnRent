@@ -20,16 +20,73 @@
             android:layout_height="wrap_content"
             android:text="Key Metrics"
             android:textAppearance="?attr/textAppearanceHeadline5"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="16dp"/> <!-- Increased bottom margin -->
 
-        <TextView
-            android:id="@+id/textViewMetricsPlaceholder"
+        <!-- Available Tools Metric -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tools Rented: -\nTools Overdue: -\nTools Available: -\nDaily Profit: -\nMonthly Profit: -"
-            android:textAppearance="?attr/textAppearanceBody1"
-            android:lineSpacingMultiplier="1.2"
-            android:layout_marginBottom="24dp"/>
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:id="@+id/textViewAvailableCountLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Tools Available:"
+                android:textAppearance="?attr/textAppearanceBody1"/>
+            <TextView
+                android:id="@+id/textViewAvailableCountValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:textStyle="bold"
+                tools:text="0"/>
+        </LinearLayout>
+
+        <!-- Rented Tools Metric -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:id="@+id/textViewRentedCountLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Tools Rented:"
+                android:textAppearance="?attr/textAppearanceBody1"/>
+            <TextView
+                android:id="@+id/textViewRentedCountValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:textStyle="bold"
+                tools:text="0"/>
+        </LinearLayout>
+
+        <!-- Overdue Tools Metric (Placeholder) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp"> <!-- Increased bottom margin for section end -->
+            <TextView
+                android:id="@+id/textViewOverdueCountLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Tools Overdue:"
+                android:textAppearance="?attr/textAppearanceBody1"/>
+            <TextView
+                android:id="@+id/textViewOverdueCountValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:textStyle="bold"
+                tools:text="0"/>
+        </LinearLayout>
 
         <!-- Quick Access Section -->
         <TextView
