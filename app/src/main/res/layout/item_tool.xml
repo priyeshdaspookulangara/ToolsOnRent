@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="4dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/imageViewToolItem"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:contentDescription="Tool image"/>
+
+        <TextView
+            android:id="@+id/textViewToolNameItem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            tools:text="Very Long Tool Name That Might Wrap"
+            app:layout_constraintStart_toEndOf="@id/imageViewToolItem"
+            app:layout_constraintEnd_toStartOf="@+id/textViewAvailabilityItem"
+            app:layout_constraintTop_toTopOf="@id/imageViewToolItem"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/textViewRentalPriceItem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBody1"
+            tools:text="$10.99 / day"
+            app:layout_constraintStart_toStartOf="@id/textViewToolNameItem"
+            app:layout_constraintEnd_toEndOf="@id/textViewToolNameItem"
+            app:layout_constraintTop_toBottomOf="@id/textViewToolNameItem"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/textViewAvailabilityItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceSubtitle2"
+            tools:text="Available"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBaseline_toBaselineOf="@id/textViewToolNameItem"
+            android:textColor="?attr/colorPrimary"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

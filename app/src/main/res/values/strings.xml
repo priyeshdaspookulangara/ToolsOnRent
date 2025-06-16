@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ToolsOnRent</string>
+    <string name="text_available">Available</string>
+    <string name="text_rented">Rented</string>
 </resources>

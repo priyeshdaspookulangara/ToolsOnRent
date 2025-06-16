@@ -3,7 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/addToolFragment">
+    app:startDestination="@id/toolListFragment">
+
+    <fragment
+        android:id="@+id/toolListFragment"
+        android:name="com.example.toolsonrent.ui.toollistscreen.ToolListFragment"
+        android:label="Tools Inventory"
+        tools:layout="@layout/fragment_tool_list" >
+        <action
+            android:id="@+id/action_toolListFragment_to_addToolFragment"
+            app:destination="@id/addToolFragment" />
+            <!-- Add enter/exit animations here if desired -->
+    </fragment>
 
     <fragment
         android:id="@+id/addToolFragment"
@@ -11,5 +22,4 @@
         android:label="Add New Tool"
         tools:layout="@layout/fragment_add_tool" />
 
-    <!-- Other fragments will be added here later -->
 </navigation>
