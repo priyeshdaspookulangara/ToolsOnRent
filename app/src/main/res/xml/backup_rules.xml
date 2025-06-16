@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- TODO: Define what data to include in app backups. -->
+    <!-- <include domain="sharedpref" path="."/> -->
+    <!-- <exclude domain="database" path="my_db.db"/> -->
+    <!-- <exclude domain="file" path="my_file.txt"/> -->
+</full-backup-content>

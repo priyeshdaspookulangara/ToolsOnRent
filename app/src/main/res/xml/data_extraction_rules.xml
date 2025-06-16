@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- TODO: Define what data to include in cloud backups. -->
+        <!-- <include domain="sharedpref" path="."/> -->
+        <!-- <exclude domain="database" path="my_db.db"/> -->
+    </cloud-backup>
+    <device-transfer>
+        <!-- TODO: Define what data to include in device-to-device transfers. -->
+        <!-- <include domain="sharedpref" path="."/> -->
+        <!-- <exclude domain="database" path="my_db.db"/> -->
+    </device-transfer>
+</data-extraction-rules>
