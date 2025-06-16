@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_toolListFragment"
             app:destination="@id/toolListFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_addToolFragment"
+            app:destination="@id/addToolFragment" />
     </fragment>
 
     <fragment

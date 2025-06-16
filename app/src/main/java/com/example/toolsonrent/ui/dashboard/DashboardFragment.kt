@@ -48,6 +48,24 @@ class DashboardFragment : Fragment() {
         }
 
         observeMetricCounts() // Call the new method
+
+        binding.buttonAddNewToolDashboard.setOnClickListener {
+            try {
+                // Assuming action_dashboardFragment_to_addToolFragment will be created in nav_graph
+                findNavController().navigate(R.id.action_dashboardFragment_to_addToolFragment)
+            } catch (e: IllegalArgumentException) {
+                Log.e("DashboardFragment", "Navigation action_dashboardFragment_to_addToolFragment not found.", e)
+                Toast.makeText(context, "Error: Add Tool action not found.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.buttonAddNewCustomerDashboard.setOnClickListener {
+            Toast.makeText(requireContext(), "Add New Customer: Coming soon!", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.buttonStartNewRentalDashboard.setOnClickListener {
+            Toast.makeText(requireContext(), "Start New Rental: Coming soon!", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun observeMetricCounts() {
