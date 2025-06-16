@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context=".ui.dashboard.DashboardFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Key Metrics Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Key Metrics"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/textViewMetricsPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tools Rented: -\nTools Overdue: -\nTools Available: -\nDaily Profit: -\nMonthly Profit: -"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:lineSpacingMultiplier="1.2"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Quick Access Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quick Access"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/buttonGoToToolList"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage Tools"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/textViewQuickAccessPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="[Add Customer, Start Rental buttons placeholder]"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Upcoming Returns / Calendar Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upcoming Returns"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:layout_marginBottom="8dp"/>
+
+        <FrameLayout
+            android:id="@+id/calendarViewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:background="#E0E0E0"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Calendar View Placeholder"
+                android:textAppearance="?attr/textAppearanceSubtitle1"/>
+        </FrameLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
