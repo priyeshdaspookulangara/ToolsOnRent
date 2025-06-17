@@ -37,6 +37,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_inventoryReportFragment"
             app:destination="@id/inventoryReportFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_profitLossReportFragment"
+            app:destination="@id/profitLossReportFragment" />
     </fragment>
 
     <fragment
@@ -142,5 +145,11 @@
         android:name="com.example.toolsonrent.ui.reports.inventory.InventoryReportFragment"
         android:label="Inventory Report"
         tools:layout="@layout/fragment_inventory_report" />
+
+    <fragment
+        android:id="@+id/profitLossReportFragment"
+        android:name="com.example.toolsonrent.ui.reports.profitloss.ProfitLossReportFragment"
+        android:label="Profit &amp; Loss Report"
+        tools:layout="@layout/fragment_profit_loss_report" />
 
 </navigation>

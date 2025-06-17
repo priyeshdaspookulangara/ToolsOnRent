@@ -41,4 +41,7 @@ interface RentalTransactionDao {
     // We pass 'currentDate' as a Long (timestamp) for comparison, matching how DateConverter stores dates.
     @Query("SELECT * FROM rental_transactions WHERE returnDate IS NULL AND dueDate < :currentDate ORDER BY dueDate ASC")
     fun getOverdueRentals(currentDate: Long): Flow<List<RentalTransaction>>
+
+    @Query("SELECT * FROM rental_transactions WHERE returnDate IS NOT NULL AND rentalDate >= :startDate AND rentalDate <= :endDate ORDER BY rentalDate DESC")
+    fun getCompletedTransactionsInRange(startDate: Long, endDate: Long): kotlinx.coroutines.flow.Flow<List<com.example.toolsonrent.database.entity.RentalTransaction>>
 }

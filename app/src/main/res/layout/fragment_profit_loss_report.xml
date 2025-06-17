@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".ui.reports.profitloss.ProfitLossReportFragment">
+
+    <TextView
+        android:id="@+id/textViewProfitLossReportTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Profit &amp; Loss Report"
+        android:textAppearance="?attr/textAppearanceHeadline5"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- Start Date Selection -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textFieldLayoutStartDateProfit"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:hint="Start Date">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextStartDateProfit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:clickable="true"
+            android:inputType="none"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- End Date Selection -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textFieldLayoutEndDateProfit"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:hint="End Date">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextEndDateProfit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:clickable="true"
+            android:inputType="none"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- No "Calculate" button, will be reactive -->
+
+    <TextView
+        android:id="@+id/textViewDateRangeProfit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceSubtitle1"
+        tools:text="Selected Range: 01/01/2023 - 31/01/2023"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/textViewTotalProfitLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Total Calculated Profit for Range:"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/textViewTotalProfitValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="$1,234.56"
+        android:textAppearance="?attr/textAppearanceHeadline4"
+        android:textStyle="bold"
+        android:gravity="center_horizontal"
+        android:textColor="?attr/colorPrimary"/>
+
+</LinearLayout>
