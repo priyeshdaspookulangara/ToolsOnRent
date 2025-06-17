@@ -65,6 +65,15 @@ class DashboardFragment : Fragment() {
             }
         }
 
+        binding.buttonViewOverdueReportDashboard.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_overdueRentalsReportFragment)
+            } catch (e: IllegalArgumentException) {
+                Log.e("DashboardFragment", "Navigation action_dashboardFragment_to_overdueRentalsReportFragment not found.", e)
+                Toast.makeText(context, "Error: Overdue Report action not found.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         observeMetricCounts() // Call the new method
 
         binding.buttonAddNewToolDashboard.setOnClickListener {

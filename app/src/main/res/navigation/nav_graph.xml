@@ -25,6 +25,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_activeRentalsFragment"
             app:destination="@id/activeRentalsFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_overdueRentalsReportFragment"
+            app:destination="@id/overdueRentalsReportFragment" />
     </fragment>
 
     <fragment
@@ -70,5 +73,11 @@
         android:name="com.example.toolsonrent.ui.rental.active.ActiveRentalsFragment"
         android:label="Active Rentals"
         tools:layout="@layout/fragment_active_rentals" />
+
+    <fragment
+        android:id="@+id/overdueRentalsReportFragment"
+        android:name="com.example.toolsonrent.ui.reports.overdue.OverdueRentalsReportFragment"
+        android:label="Overdue Rentals Report"
+        tools:layout="@layout/fragment_overdue_rentals_report" />
 
 </navigation>
