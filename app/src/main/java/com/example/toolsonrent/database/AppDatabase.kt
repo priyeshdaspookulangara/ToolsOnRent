@@ -4,16 +4,26 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.toolsonrent.database.dao.CustomerDao // New import
+import androidx.room.TypeConverters // New import
+import com.example.toolsonrent.database.converter.DateConverter // New import
+import com.example.toolsonrent.database.dao.CustomerDao
+import com.example.toolsonrent.database.dao.RentalTransactionDao // New import
 import com.example.toolsonrent.database.dao.ToolDao
-import com.example.toolsonrent.database.entity.Customer // New import
+import com.example.toolsonrent.database.entity.Customer
+import com.example.toolsonrent.database.entity.RentalTransaction // New import
 import com.example.toolsonrent.database.entity.Tool
 
-@Database(entities = [Tool::class, Customer::class], version = 2, exportSchema = false) // Updated entities and version
+@Database(
+    entities = [Tool::class, Customer::class, RentalTransaction::class], // Updated entities
+    version = 3, // Incremented version
+    exportSchema = false
+)
+@TypeConverters(DateConverter::class) // Added TypeConverter for Date
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun toolDao(): ToolDao
-    abstract fun customerDao(): CustomerDao // New DAO abstract method
+    abstract fun customerDao(): CustomerDao
+    abstract fun rentalTransactionDao(): RentalTransactionDao // New DAO abstract method
 
     companion object {
         @Volatile
