@@ -66,6 +66,19 @@ class DashboardFragment : Fragment() {
         binding.buttonStartNewRentalDashboard.setOnClickListener {
             Toast.makeText(requireContext(), "Start New Rental: Coming soon!", Toast.LENGTH_SHORT).show()
         }
+
+        // Setup for MaterialCalendarView
+        binding.materialCalendarDashboard.setOnDateChangedListener { widget, date, selected ->
+            // 'date' is a CalendarDay object from the library
+            // CalendarDay.getMonth() is 0-indexed (0-11), so add 1 for human-readable month.
+            val displayMonth = date.month + 1
+            val displayText = "Selected date: ${date.day}/$displayMonth/${date.year}"
+            Toast.makeText(requireContext(), displayText, Toast.LENGTH_SHORT).show()
+
+            // TODO: Fetch and display tools due on this date or other relevant info
+            // This might involve calling a method on the ViewModel:
+            // viewModel.fetchRentalsDueOn(date)
+        }
     }
 
     private fun observeMetricCounts() {

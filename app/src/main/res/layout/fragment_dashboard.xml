@@ -136,21 +136,13 @@
             android:textAppearance="?attr/textAppearanceHeadline5"
             android:layout_marginBottom="8dp"/>
 
-        <FrameLayout
-            android:id="@+id/calendarViewContainer"
+        <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+            android:id="@+id/materialCalendarDashboard"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:background="#E0E0E0"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Calendar View Placeholder"
-                android:textAppearance="?attr/textAppearanceSubtitle1"/>
-        </FrameLayout>
+            android:layout_height="350dp"
+            app:mcv_showOtherDates="all"
+            app:mcv_selectionMode="single"
+            android:layout_marginBottom="16dp"/>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
