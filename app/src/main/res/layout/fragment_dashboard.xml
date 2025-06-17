@@ -145,6 +145,14 @@
             android:layout_marginBottom="8dp"/>
 
         <Button
+            android:id="@+id/buttonInventoryReportDashboard"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Inventory Report"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
             android:id="@+id/buttonAddNewToolDashboard"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="match_parent"

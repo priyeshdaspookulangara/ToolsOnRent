@@ -34,6 +34,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_selectToolForReportFragment"
             app:destination="@id/selectToolForReportFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_inventoryReportFragment"
+            app:destination="@id/inventoryReportFragment" />
     </fragment>
 
     <fragment
@@ -124,7 +127,6 @@
         </action>
     </fragment>
 
-    <!-- Placeholder destination for ToolRentalHistoryFragment -->
     <fragment
         android:id="@+id/toolRentalHistoryFragment"
         android:name="com.example.toolsonrent.ui.reports.toolhistory.ToolRentalHistoryFragment"
@@ -134,5 +136,11 @@
             android:name="toolId"
             app:argType="integer" />
     </fragment>
+
+    <fragment
+        android:id="@+id/inventoryReportFragment"
+        android:name="com.example.toolsonrent.ui.reports.inventory.InventoryReportFragment"
+        android:label="Inventory Report"
+        tools:layout="@layout/fragment_inventory_report" />
 
 </navigation>

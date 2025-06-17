@@ -92,6 +92,15 @@ class DashboardFragment : Fragment() {
             }
         }
 
+        binding.buttonInventoryReportDashboard.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_inventoryReportFragment)
+            } catch (e: IllegalArgumentException) {
+                Log.e("DashboardFragment", "Navigation action_dashboardFragment_to_inventoryReportFragment not found.", e)
+                Toast.makeText(context, "Error: Inventory Report action not found.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         observeMetricCounts() // Call the new method
 
         binding.buttonAddNewToolDashboard.setOnClickListener {
