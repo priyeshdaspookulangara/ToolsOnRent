@@ -83,6 +83,15 @@ class DashboardFragment : Fragment() {
             }
         }
 
+        binding.buttonToolHistoryReportDashboard.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_selectToolForReportFragment)
+            } catch (e: IllegalArgumentException) {
+                Log.e("DashboardFragment", "Navigation action_dashboardFragment_to_selectToolForReportFragment not found.", e)
+                Toast.makeText(context, "Error: Tool History Report action not found.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         observeMetricCounts() // Call the new method
 
         binding.buttonAddNewToolDashboard.setOnClickListener {

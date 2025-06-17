@@ -137,6 +137,14 @@
             android:layout_marginBottom="8dp"/>
 
         <Button
+            android:id="@+id/buttonToolHistoryReportDashboard"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tool Rental History Report"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
             android:id="@+id/buttonAddNewToolDashboard"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="match_parent"

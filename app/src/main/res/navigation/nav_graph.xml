@@ -31,6 +31,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_selectCustomerForReportFragment"
             app:destination="@id/selectCustomerForReportFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_selectToolForReportFragment"
+            app:destination="@id/selectToolForReportFragment" />
     </fragment>
 
     <fragment
@@ -97,7 +100,6 @@
         </action>
     </fragment>
 
-    <!-- Placeholder destination for CustomerRentalHistoryFragment -->
     <fragment
         android:id="@+id/customerRentalHistoryFragment"
         android:name="com.example.toolsonrent.ui.reports.customerhistory.CustomerRentalHistoryFragment"
@@ -105,6 +107,31 @@
         tools:layout="@layout/fragment_customer_rental_history">
         <argument
             android:name="customerId"
+            app:argType="integer" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/selectToolForReportFragment"
+        android:name="com.example.toolsonrent.ui.reports.toolhistory.SelectToolForReportFragment"
+        android:label="Select Tool for Report"
+        tools:layout="@layout/fragment_select_tool_for_report">
+        <action
+            android:id="@+id/action_selectToolForReportFragment_to_toolRentalHistoryFragment"
+            app:destination="@+id/toolRentalHistoryFragment">
+            <argument
+                android:name="toolId"
+                app:argType="integer" />
+        </action>
+    </fragment>
+
+    <!-- Placeholder destination for ToolRentalHistoryFragment -->
+    <fragment
+        android:id="@+id/toolRentalHistoryFragment"
+        android:name="com.example.toolsonrent.ui.reports.toolhistory.ToolRentalHistoryFragment"
+        android:label="Tool Rental History"
+        tools:layout="@layout/fragment_tool_rental_history">
+        <argument
+            android:name="toolId"
             app:argType="integer" />
     </fragment>
 
