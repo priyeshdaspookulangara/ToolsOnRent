@@ -113,6 +113,14 @@
             android:layout_marginBottom="8dp"/>
 
         <Button
+            android:id="@+id/buttonManageReturnsDashboard"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manage Returns / Active Rentals"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
             android:id="@+id/buttonAddNewToolDashboard"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="match_parent"

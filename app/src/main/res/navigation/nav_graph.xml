@@ -22,6 +22,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_startRentalFragment"
             app:destination="@id/startRentalFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_activeRentalsFragment"
+            app:destination="@id/activeRentalsFragment" />
     </fragment>
 
     <fragment
@@ -61,5 +64,11 @@
         android:name="com.example.toolsonrent.ui.rental.start.StartRentalFragment"
         android:label="Start New Rental"
         tools:layout="@layout/fragment_start_rental" />
+
+    <fragment
+        android:id="@+id/activeRentalsFragment"
+        android:name="com.example.toolsonrent.ui.rental.active.ActiveRentalsFragment"
+        android:label="Active Rentals"
+        tools:layout="@layout/fragment_active_rentals" />
 
 </navigation>

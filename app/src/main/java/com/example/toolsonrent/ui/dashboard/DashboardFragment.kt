@@ -56,6 +56,15 @@ class DashboardFragment : Fragment() {
             }
         }
 
+        binding.buttonManageReturnsDashboard.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_activeRentalsFragment)
+            } catch (e: IllegalArgumentException) {
+                Log.e("DashboardFragment", "Navigation action_dashboardFragment_to_activeRentalsFragment not found.", e)
+                Toast.makeText(context, "Error: Manage Returns action not found.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         observeMetricCounts() // Call the new method
 
         binding.buttonAddNewToolDashboard.setOnClickListener {
