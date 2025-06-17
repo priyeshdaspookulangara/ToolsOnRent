@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_customerListFragment"
             app:destination="@id/customerListFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_startRentalFragment"
+            app:destination="@id/startRentalFragment" />
     </fragment>
 
     <fragment
@@ -52,5 +55,11 @@
         android:name="com.example.toolsonrent.ui.customer.add.AddCustomerFragment"
         android:label="Add New Customer"
         tools:layout="@layout/fragment_add_customer" />
+
+    <fragment
+        android:id="@+id/startRentalFragment"
+        android:name="com.example.toolsonrent.ui.rental.start.StartRentalFragment"
+        android:label="Start New Rental"
+        tools:layout="@layout/fragment_start_rental" />
 
 </navigation>

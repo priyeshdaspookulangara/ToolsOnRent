@@ -73,7 +73,12 @@ class DashboardFragment : Fragment() {
         }
 
         binding.buttonStartNewRentalDashboard.setOnClickListener {
-            Toast.makeText(requireContext(), "Start New Rental: Coming soon!", Toast.LENGTH_SHORT).show()
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_startRentalFragment)
+            } catch (e: IllegalArgumentException) {
+                Log.e("DashboardFragment", "Navigation action_dashboardFragment_to_startRentalFragment not found.", e)
+                Toast.makeText(context, "Error: Start Rental action not found.", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // Setup for MaterialCalendarView

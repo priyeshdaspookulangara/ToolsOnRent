@@ -31,4 +31,7 @@ interface ToolDao {
 
     @Query("SELECT COUNT(id) FROM tools WHERE isAvailable = 0")
     fun getRentedToolsCount(): kotlinx.coroutines.flow.Flow<Int>
+
+    @Query("SELECT * FROM tools WHERE isAvailable = 1 ORDER BY name ASC")
+    fun getAvailableTools(): kotlinx.coroutines.flow.Flow<List<com.example.toolsonrent.database.entity.Tool>>
 }
