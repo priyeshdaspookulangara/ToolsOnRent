@@ -47,6 +47,15 @@ class DashboardFragment : Fragment() {
             }
         }
 
+        binding.buttonManageCustomersDashboard.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_customerListFragment)
+            } catch (e: IllegalArgumentException) {
+                Log.e("DashboardFragment", "Navigation action_dashboardFragment_to_customerListFragment not found.", e)
+                Toast.makeText(context, "Error: Manage Customers action not found.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         observeMetricCounts() // Call the new method
 
         binding.buttonAddNewToolDashboard.setOnClickListener {

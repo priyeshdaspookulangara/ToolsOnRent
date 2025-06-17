@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_addToolFragment"
             app:destination="@id/addToolFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_customerListFragment"
+            app:destination="@id/customerListFragment" />
     </fragment>
 
     <fragment
@@ -26,7 +29,6 @@
         <action
             android:id="@+id/action_toolListFragment_to_addToolFragment"
             app:destination="@id/addToolFragment" />
-            <!-- Add enter/exit animations here if desired -->
     </fragment>
 
     <fragment
@@ -34,5 +36,21 @@
         android:name="com.example.toolsonrent.ui.addtool.AddToolFragment"
         android:label="Add New Tool"
         tools:layout="@layout/fragment_add_tool" />
+
+    <fragment
+        android:id="@+id/customerListFragment"
+        android:name="com.example.toolsonrent.ui.customer.list.CustomerListFragment"
+        android:label="Customers"
+        tools:layout="@layout/fragment_customer_list">
+        <action
+            android:id="@+id/action_customerListFragment_to_addCustomerFragment"
+            app:destination="@id/addCustomerFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addCustomerFragment"
+        android:name="com.example.toolsonrent.ui.customer.add.AddCustomerFragment"
+        android:label="Add New Customer"
+        tools:layout="@layout/fragment_add_customer" />
 
 </navigation>
