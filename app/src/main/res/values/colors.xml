@@ -2,6 +2,7 @@
     <color name="status_available_green">#4CAF50</color> <!-- Green 500 -->
     <color name="status_rented_red">#F44336</color>    <!-- Red 500 -->
     <color name="status_active_blue">#2196F3</color> <!-- Blue 500 -->
+    <color name="calendar_due_today_yellow">#FFC107</color> <!-- Amber 500 / Yellow -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
