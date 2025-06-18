@@ -88,6 +88,50 @@
                 tools:text="0"/>
         </LinearLayout>
 
+        <!-- Daily Profit Metric -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:id="@+id/textViewDailyProfitLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Today's Profit:"
+                android:textAppearance="?attr/textAppearanceBody1"/>
+            <TextView
+                android:id="@+id/textViewDailyProfitValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:textStyle="bold"
+                tools:text="$0.00"/>
+        </LinearLayout>
+
+        <!-- Monthly Profit Metric -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp"> <!-- Increased bottom margin for section end -->
+            <TextView
+                android:id="@+id/textViewMonthlyProfitLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="This Month's Profit:"
+                android:textAppearance="?attr/textAppearanceBody1"/>
+            <TextView
+                android:id="@+id/textViewMonthlyProfitValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:textStyle="bold"
+                tools:text="$0.00"/>
+        </LinearLayout>
+
         <!-- Quick Access Section -->
         <TextView
             android:layout_width="wrap_content"
