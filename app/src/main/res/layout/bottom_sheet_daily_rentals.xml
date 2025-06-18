@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    tools:context=".ui.dashboard.calendar.details.DailyRentalsBottomSheetDialogFragment">
+
+    <TextView
+        android:id="@+id/textViewBottomSheetTitleDaily"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Activity for January 1, 2023"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:gravity="center_horizontal"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewDailyDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="100dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_daily_rental_detail"
+        tools:itemCount="3"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:clipToPadding="false"/>
+
+    <TextView
+        android:id="@+id/textViewNoRentalsForDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="100dp"
+        android:text="No rental activity for this date."
+        android:textAppearance="?attr/textAppearanceSubtitle1"
+        android:visibility="gone"
+        android:gravity="center"
+        android:padding="16dp"
+        tools:visibility="visible"/>
+
+</LinearLayout>

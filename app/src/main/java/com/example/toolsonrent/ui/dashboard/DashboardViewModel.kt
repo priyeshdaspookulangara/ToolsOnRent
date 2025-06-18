@@ -1,63 +1,51 @@
 package com.example.toolsonrent.ui.dashboard
 
 import android.app.Application
+import android.util.Log // Added for new flow logic
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.toolsonrent.database.AppDatabase
-import com.example.toolsonrent.database.entity.RentalTransaction // For helper function and activeRentalsFlow
-import com.prolificinteractive.materialcalendarview.CalendarDay // For calendar decoration
+import com.example.toolsonrent.database.entity.RentalTransaction
+import com.example.toolsonrent.database.entity.Tool // Needed for toolsMap in new flow
+import com.example.toolsonrent.database.entity.Customer // Needed for customersMap in new flow
+import com.example.toolsonrent.ui.dashboard.calendar.details.DailyRentalDetailItem // New import
+import com.prolificinteractive.materialcalendarview.CalendarDay
+import kotlinx.coroutines.ExperimentalCoroutinesApi // For flatMapLatest
 import kotlinx.coroutines.flow.*
 import java.util.Calendar
-import java.util.Date // For Date.toCalendarDay() extension
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalCoroutinesApi::class) // Apply at class level
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val toolDao = AppDatabase.getInstance(application).toolDao()
     private val rentalTransactionDao = AppDatabase.getInstance(application).rentalTransactionDao()
+    private val customerDao = AppDatabase.getInstance(application).customerDao() // Added for new flow
 
     // Existing counts
     val availableToolsCount: StateFlow<Int> = toolDao.getAvailableToolsCount()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = 0
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
 
     val rentedToolsCount: StateFlow<Int> = toolDao.getRentedToolsCount()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = 0
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
 
     val overdueToolsCount: StateFlow<Int> = rentalTransactionDao.getOverdueRentals(System.currentTimeMillis())
         .map { it.size }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = 0
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
 
-    // Helper function to calculate profit from a list of transactions
     private fun calculateProfitFromTransactions(transactions: List<RentalTransaction>): Double {
         return transactions.sumOf { transaction ->
             if (transaction.returnDate == null) return@sumOf 0.0
-
             val calRental = Calendar.getInstance().apply { time = transaction.rentalDate; clearTime() }
             val calReturn = Calendar.getInstance().apply { time = transaction.returnDate!!; clearTime() }
-
             val durationInDays = TimeUnit.MILLISECONDS.toDays(calReturn.timeInMillis - calRental.timeInMillis) + 1
-
             (durationInDays * transaction.rentalPricePerDay).coerceAtLeast(0.0)
         }
     }
 
     private fun Calendar.clearTime() {
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
+        set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
     }
 
     val dailyProfit: StateFlow<Double> = flow {
@@ -66,10 +54,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         val todayStartMillis = calendar.timeInMillis
         calendar.set(Calendar.HOUR_OF_DAY, 23); calendar.set(Calendar.MINUTE, 59); calendar.set(Calendar.SECOND, 59); calendar.set(Calendar.MILLISECOND, 999)
         val todayEndMillis = calendar.timeInMillis
-
         emitAll(rentalTransactionDao.getCompletedTransactionsInRange(todayStartMillis, todayEndMillis)
-            .map { transactions -> calculateProfitFromTransactions(transactions) }
-        )
+            .map { calculateProfitFromTransactions(it) })
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0.0)
 
     val monthlyProfit: StateFlow<Double> = flow {
@@ -79,65 +65,87 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
         calendar.set(Calendar.HOUR_OF_DAY, 23); calendar.set(Calendar.MINUTE, 59); calendar.set(Calendar.SECOND, 59); calendar.set(Calendar.MILLISECOND, 999)
         val monthEndMillis = calendar.timeInMillis
-
         emitAll(rentalTransactionDao.getCompletedTransactionsInRange(monthStartMillis, monthEndMillis)
-            .map { transactions -> calculateProfitFromTransactions(transactions) }
-        )
+            .map { calculateProfitFromTransactions(it) })
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0.0)
 
-    // --- Calendar Decoration Logic ---
-
-    // Helper function to convert java.util.Date to MaterialCalendarView's CalendarDay
     private fun Date.toCalendarDay(): CalendarDay {
-        val cal = Calendar.getInstance()
-        cal.time = this
-        return CalendarDay.from( // CalendarDay month is 1-12, Calendar month is 0-11
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH) + 1,
-            cal.get(Calendar.DAY_OF_MONTH)
-        )
+        val cal = Calendar.getInstance(); cal.time = this
+        return CalendarDay.from(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
     }
 
-    // Helper function to get start of today in milliseconds
     private fun getStartOfTodayMillis(): Long {
-        val calendar = Calendar.getInstance()
-        calendar.clearTime() // Uses the extension function defined above
-        return calendar.timeInMillis
+        val calendar = Calendar.getInstance(); calendar.clearTime(); return calendar.timeInMillis
     }
 
-    // Base flow of active rentals (not yet returned)
     private val activeRentalsFlow: Flow<List<RentalTransaction>> =
-        rentalTransactionDao.getActiveRentals()
-            .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), replay = 1) // Share to avoid multiple DAO calls
+        rentalTransactionDao.getActiveRentals().shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), replay = 1)
 
-    // StateFlow for Due Today CalendarDays
     val dueTodayCalendarDays: StateFlow<Set<CalendarDay>> = activeRentalsFlow.map { transactions ->
         val todayStartMillis = getStartOfTodayMillis()
-        // End of today is start of today + 1 day - 1 millisecond
         val todayEndMillis = todayStartMillis + TimeUnit.DAYS.toMillis(1) - 1
-
-        transactions.filter {
-            // Check if dueDate falls within the milliseconds range of today
-            it.dueDate.time in todayStartMillis..todayEndMillis
-        }.map { it.dueDate.toCalendarDay() }.toSet()
+        transactions.filter { it.dueDate.time in todayStartMillis..todayEndMillis }.map { it.dueDate.toCalendarDay() }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptySet())
 
-    // StateFlow for Overdue (and not yet returned) CalendarDays
     val overdueUnreturnedCalendarDays: StateFlow<Set<CalendarDay>> = activeRentalsFlow.map { transactions ->
         val todayStartMillis = getStartOfTodayMillis()
-        transactions.filter {
-            it.dueDate.time < todayStartMillis // Due date is before start of today
-            // No need to check for returnDate == null as activeRentalsFlow already filters for this
-        }.map { it.dueDate.toCalendarDay() }.toSet()
+        transactions.filter { it.dueDate.time < todayStartMillis }.map { it.dueDate.toCalendarDay() }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptySet())
 
-    // StateFlow for Upcoming (due from tomorrow onwards) Return CalendarDays
     val upcomingReturnCalendarDays: StateFlow<Set<CalendarDay>> = activeRentalsFlow.map { transactions ->
-        val todayStartMillis = getStartOfTodayMillis()
-        val tomorrowStartMillis = todayStartMillis + TimeUnit.DAYS.toMillis(1) // Start of tomorrow
-
-        transactions.filter {
-            it.dueDate.time >= tomorrowStartMillis // Due date is from tomorrow onwards
-        }.map { it.dueDate.toCalendarDay() }.toSet()
+        val tomorrowStartMillis = getStartOfTodayMillis() + TimeUnit.DAYS.toMillis(1)
+        transactions.filter { it.dueDate.time >= tomorrowStartMillis }.map { it.dueDate.toCalendarDay() }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptySet())
+
+    // --- Logic for Selected Date Details ---
+    private val _selectedCalendarDayForDetails = MutableStateFlow<CalendarDay?>(null)
+    val selectedCalendarDayForDetails: StateFlow<CalendarDay?> = _selectedCalendarDayForDetails.asStateFlow() // Expose this for the BottomSheet title
+
+    fun userSelectedDateForDetails(calendarDay: CalendarDay?) {
+        _selectedCalendarDayForDetails.value = calendarDay
+        Log.d("DashboardVM", "User selected date for details: $calendarDay")
+    }
+
+    val rentalsForSelectedDate: StateFlow<List<DailyRentalDetailItem>> =
+        _selectedCalendarDayForDetails.flatMapLatest { selectedDay ->
+            if (selectedDay == null) {
+                flowOf(emptyList())
+            } else {
+                combine(
+                    activeRentalsFlow, // Use the shared flow of active rentals
+                    toolDao.getAllTools(),
+                    customerDao.getAllCustomers()
+                ) { transactions, tools, customers ->
+                    val toolsMap = tools.associateBy { it.id }
+                    val customersMap = customers.associateBy { it.id }
+                    val currentCalDay = CalendarDay.today()
+
+                    transactions.filter { transaction ->
+                        transaction.dueDate.toCalendarDay() == selectedDay
+                    }.mapNotNull { transaction ->
+                        val tool = toolsMap[transaction.toolId]
+                        val customer = customersMap[transaction.customerId]
+
+                        if (tool != null && customer != null) {
+                            val dueCalDay = selectedDay // Since we filtered by this
+                            val status = when {
+                                dueCalDay.isBefore(currentCalDay) -> "Overdue (Was due this day)"
+                                dueCalDay == currentCalDay -> "Due Today"
+                                else -> "Upcoming (Due this day)"
+                            }
+                            DailyRentalDetailItem(
+                                toolName = tool.name,
+                                customerName = customer.name,
+                                fullDueDate = transaction.dueDate,
+                                status = status,
+                                transactionId = transaction.id
+                            )
+                        } else {
+                            Log.w("DashboardVM", "Tool or Customer not found for transaction ${transaction.id} while generating daily details.")
+                            null
+                        }
+                    }
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 }

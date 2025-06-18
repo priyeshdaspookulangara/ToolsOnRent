@@ -6,18 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.util.Log
 import android.widget.Toast
-import androidx.core.content.ContextCompat // For colors
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.example.toolsonrent.R // For R.color resources
+import com.example.toolsonrent.R
 import kotlinx.coroutines.launch
 import com.example.toolsonrent.databinding.FragmentDashboardBinding
-import com.example.toolsonrent.ui.dashboard.calendar.EventDecorator // New import
-import com.prolificinteractive.materialcalendarview.CalendarDay // New import
+import com.example.toolsonrent.ui.dashboard.calendar.EventDecorator
+import com.example.toolsonrent.ui.dashboard.calendar.details.DailyRentalsBottomSheetDialogFragment // New import
+import com.prolificinteractive.materialcalendarview.CalendarDay
 import kotlinx.coroutines.flow.collectLatest
 import java.text.NumberFormat
 import java.util.Locale
@@ -33,7 +34,6 @@ class DashboardFragment : Fragment() {
         maximumFractionDigits = 2
     }
 
-    // Member variables for current decorators to manage them
     private var dueTodayDecorator: EventDecorator? = null
     private var overdueDecorator: EventDecorator? = null
     private var upcomingDecorator: EventDecorator? = null
@@ -52,13 +52,25 @@ class DashboardFragment : Fragment() {
 
         setupNavigationButtonListeners()
         observeDashboardMetrics()
-        observeCalendarDecorators() // Add this call
+        observeCalendarDecorators()
 
+        // Updated MaterialCalendarView listener
         binding.materialCalendarDashboard.setOnDateChangedListener { widget, date, selected ->
-            val displayMonth = date.month // CalendarDay month is 1-12, but was corrected in VM's toCalendarDay to be 0-11 for Java Date, then back to 1-12 for CalendarDay. So, date.month is already 1-12.
-            val displayText = "Selected date: ${date.day}/${date.month}/${date.year}" // Use date.month directly
-            Toast.makeText(requireContext(), displayText, Toast.LENGTH_SHORT).show()
-            // TODO: viewModel.fetchRentalsDueOn(date) // Or rather, filter existing transactions for this date for details
+            if (selected) { // User selected a date
+                viewModel.userSelectedDateForDetails(date) // Inform ViewModel
+
+                // Show the BottomSheetDialogFragment
+                // Check if already shown to prevent multiple instances
+                if (childFragmentManager.findFragmentByTag(DailyRentalsBottomSheetDialogFragment.TAG) == null) {
+                    DailyRentalsBottomSheetDialogFragment.newInstance().show(
+                        childFragmentManager,
+                        DailyRentalsBottomSheetDialogFragment.TAG
+                    )
+                }
+            } else {
+                // Optional: If a date is deselected (and calendar supports this mode, though default is single selection replacement)
+                // viewModel.userSelectedDateForDetails(null) // Clear details if deselected
+            }
         }
     }
 
@@ -128,7 +140,6 @@ class DashboardFragment : Fragment() {
     private fun observeCalendarDecorators() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Observe Due Today Dates
                 launch {
                     viewModel.dueTodayCalendarDays.collectLatest { dates ->
                         dueTodayDecorator?.let { binding.materialCalendarDashboard.removeDecorator(it) }
@@ -136,13 +147,9 @@ class DashboardFragment : Fragment() {
                             val color = ContextCompat.getColor(requireContext(), R.color.calendar_due_today_yellow)
                             dueTodayDecorator = EventDecorator(color, dates)
                             binding.materialCalendarDashboard.addDecorator(dueTodayDecorator!!)
-                        } else {
-                            dueTodayDecorator = null
-                        }
+                        } else { dueTodayDecorator = null }
                     }
                 }
-
-                // Observe Overdue Dates
                 launch {
                     viewModel.overdueUnreturnedCalendarDays.collectLatest { dates ->
                         overdueDecorator?.let { binding.materialCalendarDashboard.removeDecorator(it) }
@@ -150,13 +157,9 @@ class DashboardFragment : Fragment() {
                             val color = ContextCompat.getColor(requireContext(), R.color.status_rented_red)
                             overdueDecorator = EventDecorator(color, dates)
                             binding.materialCalendarDashboard.addDecorator(overdueDecorator!!)
-                        } else {
-                            overdueDecorator = null
-                        }
+                        } else { overdueDecorator = null }
                     }
                 }
-
-                // Observe Upcoming Return Dates
                 launch {
                     viewModel.upcomingReturnCalendarDays.collectLatest { dates ->
                         upcomingDecorator?.let { binding.materialCalendarDashboard.removeDecorator(it) }
@@ -164,9 +167,7 @@ class DashboardFragment : Fragment() {
                             val color = ContextCompat.getColor(requireContext(), R.color.status_active_blue)
                             upcomingDecorator = EventDecorator(color, dates)
                             binding.materialCalendarDashboard.addDecorator(upcomingDecorator!!)
-                        } else {
-                            upcomingDecorator = null
-                        }
+                        } else { upcomingDecorator = null }
                     }
                 }
             }
