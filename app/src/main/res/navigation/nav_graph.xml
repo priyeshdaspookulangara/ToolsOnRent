@@ -50,6 +50,7 @@
         <action
             android:id="@+id/action_toolListFragment_to_addToolFragment"
             app:destination="@id/addToolFragment" />
+        <!-- Action to EditToolFragment will be added here later -->
     </fragment>
 
     <fragment
@@ -66,6 +67,9 @@
         <action
             android:id="@+id/action_customerListFragment_to_addCustomerFragment"
             app:destination="@id/addCustomerFragment" />
+        <action
+            android:id="@+id/action_customerListFragment_to_editCustomerFragment"
+            app:destination="@id/editCustomerFragment" />
     </fragment>
 
     <fragment
@@ -73,6 +77,16 @@
         android:name="com.example.toolsonrent.ui.customer.add.AddCustomerFragment"
         android:label="Add New Customer"
         tools:layout="@layout/fragment_add_customer" />
+
+    <fragment
+        android:id="@+id/editCustomerFragment"
+        android:name="com.example.toolsonrent.ui.customer.edit.EditCustomerFragment"
+        android:label="Edit Customer"
+        tools:layout="@layout/fragment_edit_customer">
+        <argument
+            android:name="customerId"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/startRentalFragment"

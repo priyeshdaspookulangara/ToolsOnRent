@@ -9,33 +9,46 @@ import com.example.toolsonrent.R // For drawable
 import com.example.toolsonrent.database.entity.Customer
 import com.example.toolsonrent.databinding.ItemCustomerBinding // Generated
 
-class CustomerListAdapter : ListAdapter<Customer, CustomerListAdapter.CustomerViewHolder>(CustomerDiffCallback) {
+class CustomerListAdapter(
+    private val onCustomerClicked: (Customer) -> Unit // New parameter for click callback
+) : ListAdapter<Customer, CustomerListAdapter.CustomerViewHolder>(CustomerDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomerViewHolder {
         val binding = ItemCustomerBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return CustomerViewHolder(binding)
+        // Pass the onCustomerClicked lambda to the ViewHolder
+        return CustomerViewHolder(binding, onCustomerClicked)
     }
 
     override fun onBindViewHolder(holder: CustomerViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val customer = getItem(position)
+        holder.bind(customer)
     }
 
-    inner class CustomerViewHolder(private val binding: ItemCustomerBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class CustomerViewHolder(
+        private val binding: ItemCustomerBinding,
+        private val onCustomerClickedCallback: (Customer) -> Unit // Renamed for clarity within ViewHolder
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        private var currentCustomer: Customer? = null // Hold current customer for the click listener
+
+        init {
+            itemView.setOnClickListener {
+                currentCustomer?.let { customer ->
+                    onCustomerClickedCallback(customer)
+                }
+            }
+        }
+
         fun bind(customer: Customer) {
+            currentCustomer = customer // Store customer for the click listener
             binding.textViewCustomerNameItem.text = customer.name
             binding.textViewCustomerPhoneItem.text = customer.phoneNumber
             // For now, use the placeholder icon for all
             binding.imageViewCustomerIconItem.setImageResource(R.drawable.ic_customer_placeholder)
-
-            // Example: Set an OnClickListener for item interaction
-            // itemView.setOnClickListener {
-            //     onItemClickListener?.invoke(customer)
-            // }
         }
     }
 
-    // Optional: Listener for item clicks, can be set from the Fragment/Activity
-    // var onItemClickListener: ((Customer) -> Unit)? = null
+    // Removed the old commented-out onItemClickListener property
 
     companion object CustomerDiffCallback : DiffUtil.ItemCallback<Customer>() {
         override fun areItemsTheSame(oldItem: Customer, newItem: Customer): Boolean {
