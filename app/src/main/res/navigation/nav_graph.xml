@@ -53,7 +53,9 @@
         <action
             android:id="@+id/action_toolListFragment_to_addToolFragment"
             app:destination="@id/addToolFragment" />
-        <!-- Action to EditToolFragment will be added here later -->
+        <action
+            android:id="@+id/action_toolListFragment_to_editToolFragment"
+            app:destination="@id/editToolFragment" />
     </fragment>
 
     <fragment
@@ -61,6 +63,16 @@
         android:name="com.example.toolsonrent.ui.addtool.AddToolFragment"
         android:label="Add New Tool"
         tools:layout="@layout/fragment_add_tool" />
+
+    <fragment
+        android:id="@+id/editToolFragment"
+        android:name="com.example.toolsonrent.ui.tool.edit.EditToolFragment"
+        android:label="Edit Tool"
+        tools:layout="@layout/fragment_edit_tool">
+        <argument
+            android:name="toolId"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/customerListFragment"
