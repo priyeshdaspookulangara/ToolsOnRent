@@ -40,6 +40,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_profitLossReportFragment"
             app:destination="@id/profitLossReportFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_addCustomerFragment"
+            app:destination="@id/addCustomerFragment" />
     </fragment>
 
     <fragment

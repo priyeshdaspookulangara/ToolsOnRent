@@ -112,7 +112,11 @@ class DashboardFragment : Fragment() {
             catch (e: IllegalArgumentException) { handleNavError("Add New Tool", e) }
         }
         binding.buttonAddNewCustomerDashboard.setOnClickListener {
-            Toast.makeText(requireContext(), "Add New Customer: Coming soon!", Toast.LENGTH_SHORT).show()
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_addCustomerFragment)
+            } catch (e: IllegalArgumentException) {
+                handleNavError("Add New Customer", e)
+            }
         }
         binding.buttonStartNewRentalDashboard.setOnClickListener {
             try { findNavController().navigate(R.id.action_dashboardFragment_to_startRentalFragment) }
