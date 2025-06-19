@@ -51,7 +51,8 @@ class EditToolViewModel(
         name: String,
         description: String?,
         priceStr: String,
-        isAvailable: Boolean
+        isAvailable: Boolean,
+        imageUri: String? // New parameter
     ) {
         val price = priceStr.toDoubleOrNull()
         if (name.isBlank()) {
@@ -67,15 +68,14 @@ class EditToolViewModel(
             return
         }
 
-        val existingImageUri = tool.value?.imageUri
-
+        // No longer relying on tool.value for imageUri, using the passed parameter directly
         val updatedTool = Tool(
             id = currentToolId,
             name = name,
             description = description?.ifBlank { null },
             rentalPrice = price,
             isAvailable = isAvailable,
-            imageUri = existingImageUri
+            imageUri = imageUri // Use the imageUri passed from the fragment
         )
 
         viewModelScope.launch {

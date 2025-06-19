@@ -6,6 +6,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide // Glide import
 import com.example.toolsonrent.R // For R.string and R.color resources
 import com.example.toolsonrent.database.entity.Tool
 import com.example.toolsonrent.databinding.ItemToolBinding // Reusing the item binding from general tool list
@@ -71,10 +72,12 @@ class SelectToolAdapter(
             // In a real application, you would use an image loading library like Glide or Picasso here.
             // e.g., Glide.with(itemView.context).load(tool.imageUri ?: R.drawable.ic_default_tool_placeholder).into(binding.imageViewToolItem)
             if (tool.imageUri != null) {
-                // Using a generic launcher background as a different placeholder if URI exists
-                binding.imageViewToolItem.setImageResource(R.drawable.ic_launcher_background)
+                Glide.with(itemView.context)
+                    .load(tool.imageUri) // tool.imageUri is the String URI of the internal file
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(R.drawable.ic_baseline_broken_image_24)
+                    .into(binding.imageViewToolItem)
             } else {
-                // Default gallery icon if no image URI
                 binding.imageViewToolItem.setImageResource(android.R.drawable.ic_menu_gallery)
             }
         }

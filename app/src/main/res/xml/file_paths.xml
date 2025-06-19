@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Path for temporary camera images in app's cache directory -->
+    <cache-path
+        name="camera_images"
+        path="images/" />
+    <!--
+        The "images/" subdirectory will be created within the cache path if it doesn't exist
+        when a file is attempted to be created there.
+        This corresponds to context.getCacheDir() + "/images/"
+        Files stored here are temporary and can be cleared by the system.
+    -->
+</paths>

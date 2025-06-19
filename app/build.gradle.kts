@@ -70,4 +70,9 @@ dependencies {
 
     // Material Calendar View
     implementation("com.github.ProlificInteractive:material-calendarview:v2.0.1")
+
+    // Glide
+    val glide_version = "4.16.0"
+    implementation("com.github.bumptech.glide:glide:$glide_version")
+    ksp("com.github.bumptech.glide:ksp:$glide_version")
 }

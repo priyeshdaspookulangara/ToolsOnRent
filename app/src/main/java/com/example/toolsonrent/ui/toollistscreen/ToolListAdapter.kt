@@ -4,6 +4,7 @@ package com.example.toolsonrent.ui.toollistscreen
 // import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import com.bumptech.glide.Glide // Glide import
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -71,9 +72,14 @@ class ToolListAdapter(
                 // In a real app, you would use Glide or Picasso here:
                 // Glide.with(itemView.context).load(Uri.parse(tool.imageUri)).placeholder(R.drawable.ic_menu_gallery).into(binding.imageViewToolItem)
                 // For now, just a different placeholder to indicate a URI is present
-                binding.imageViewToolItem.setImageResource(R.drawable.ic_launcher_background) // Example placeholder
+            // binding.imageViewToolItem.setImageResource(R.drawable.ic_launcher_background) // Example placeholder
+            Glide.with(itemView.context)
+                .load(tool.imageUri) // tool.imageUri is the String URI of the internal file
+                .placeholder(android.R.drawable.ic_menu_gallery) // Default placeholder while loading
+                .error(R.drawable.ic_baseline_broken_image_24) // Use the broken image icon on error
+                .into(binding.imageViewToolItem)
             } else {
-                binding.imageViewToolItem.setImageResource(android.R.drawable.ic_menu_gallery) // Default placeholder
+            binding.imageViewToolItem.setImageResource(android.R.drawable.ic_menu_gallery) // Default if no URI
             }
         }
     }
