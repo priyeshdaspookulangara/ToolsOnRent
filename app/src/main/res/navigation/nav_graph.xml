@@ -3,22 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/dashboardFragment">
+    app:startDestination="@id/nav_dashboard"> <!-- Updated startDestination -->
 
+    <!-- Dashboard Fragment (Renamed ID) -->
     <fragment
-        android:id="@+id/dashboardFragment"
+        android:id="@+id/nav_dashboard"
         android:name="com.example.toolsonrent.ui.dashboard.DashboardFragment"
         android:label="Dashboard"
         tools:layout="@layout/fragment_dashboard">
+        <!-- Actions from Dashboard to other screens -->
         <action
             android:id="@+id/action_dashboardFragment_to_toolListFragment"
-            app:destination="@id/toolListFragment" />
+            app:destination="@id/nav_tools_inventory" />
+            <!-- Destination ID updated if this action is kept -->
         <action
             android:id="@+id/action_dashboardFragment_to_addToolFragment"
             app:destination="@id/addToolFragment" />
         <action
             android:id="@+id/action_dashboardFragment_to_customerListFragment"
-            app:destination="@id/customerListFragment" />
+            app:destination="@id/nav_customers" />
+            <!-- Destination ID updated if this action is kept -->
         <action
             android:id="@+id/action_dashboardFragment_to_startRentalFragment"
             app:destination="@id/startRentalFragment" />
@@ -45,10 +49,11 @@
             app:destination="@id/addCustomerFragment" />
     </fragment>
 
+    <!-- Tool List/Inventory Fragment (Renamed ID & Label) -->
     <fragment
-        android:id="@+id/toolListFragment"
+        android:id="@+id/nav_tools_inventory"
         android:name="com.example.toolsonrent.ui.toollistscreen.ToolListFragment"
-        android:label="Tools Inventory"
+        android:label="Inventory"
         tools:layout="@layout/fragment_tool_list" >
         <action
             android:id="@+id/action_toolListFragment_to_addToolFragment"
@@ -58,24 +63,9 @@
             app:destination="@id/editToolFragment" />
     </fragment>
 
+    <!-- Customer List Fragment (Renamed ID) -->
     <fragment
-        android:id="@+id/addToolFragment"
-        android:name="com.example.toolsonrent.ui.addtool.AddToolFragment"
-        android:label="Add New Tool"
-        tools:layout="@layout/fragment_add_tool" />
-
-    <fragment
-        android:id="@+id/editToolFragment"
-        android:name="com.example.toolsonrent.ui.tool.edit.EditToolFragment"
-        android:label="Edit Tool"
-        tools:layout="@layout/fragment_edit_tool">
-        <argument
-            android:name="toolId"
-            app:argType="integer" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/customerListFragment"
+        android:id="@+id/nav_customers"
         android:name="com.example.toolsonrent.ui.customer.list.CustomerListFragment"
         android:label="Customers"
         tools:layout="@layout/fragment_customer_list">
@@ -87,40 +77,60 @@
             app:destination="@id/editCustomerFragment" />
     </fragment>
 
+    <!-- New Rentals Fragment Destination -->
+    <fragment
+        android:id="@+id/nav_rentals"
+        android:name="com.example.toolsonrent.ui.rentals.RentalsFragment"
+        android:label="Rentals"
+        tools:layout="@layout/fragment_rentals" />
+
+    <!-- New Settings Fragment Destination -->
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.example.toolsonrent.ui.settings.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/fragment_settings" />
+
+    <!-- Existing Helper/Sub-Fragments (IDs unchanged) -->
+    <fragment
+        android:id="@+id/addToolFragment"
+        android:name="com.example.toolsonrent.ui.addtool.AddToolFragment"
+        android:label="Add New Tool"
+        tools:layout="@layout/fragment_add_tool" />
+    <fragment
+        android:id="@+id/editToolFragment"
+        android:name="com.example.toolsonrent.ui.tool.edit.EditToolFragment"
+        android:label="Edit Tool"
+        tools:layout="@layout/fragment_edit_tool">
+        <argument android:name="toolId" app:argType="integer" />
+    </fragment>
     <fragment
         android:id="@+id/addCustomerFragment"
         android:name="com.example.toolsonrent.ui.customer.add.AddCustomerFragment"
         android:label="Add New Customer"
         tools:layout="@layout/fragment_add_customer" />
-
     <fragment
         android:id="@+id/editCustomerFragment"
         android:name="com.example.toolsonrent.ui.customer.edit.EditCustomerFragment"
         android:label="Edit Customer"
         tools:layout="@layout/fragment_edit_customer">
-        <argument
-            android:name="customerId"
-            app:argType="integer" />
+        <argument android:name="customerId" app:argType="integer" />
     </fragment>
-
     <fragment
         android:id="@+id/startRentalFragment"
         android:name="com.example.toolsonrent.ui.rental.start.StartRentalFragment"
         android:label="Start New Rental"
         tools:layout="@layout/fragment_start_rental" />
-
     <fragment
         android:id="@+id/activeRentalsFragment"
         android:name="com.example.toolsonrent.ui.rental.active.ActiveRentalsFragment"
         android:label="Active Rentals"
         tools:layout="@layout/fragment_active_rentals" />
-
     <fragment
         android:id="@+id/overdueRentalsReportFragment"
         android:name="com.example.toolsonrent.ui.reports.overdue.OverdueRentalsReportFragment"
         android:label="Overdue Rentals Report"
         tools:layout="@layout/fragment_overdue_rentals_report" />
-
     <fragment
         android:id="@+id/selectCustomerForReportFragment"
         android:name="com.example.toolsonrent.ui.reports.customerhistory.SelectCustomerForReportFragment"
@@ -129,22 +139,16 @@
         <action
             android:id="@+id/action_selectCustomerForReportFragment_to_customerRentalHistoryFragment"
             app:destination="@+id/customerRentalHistoryFragment">
-            <argument
-                android:name="customerId"
-                app:argType="integer" />
+            <argument android:name="customerId" app:argType="integer" />
         </action>
     </fragment>
-
     <fragment
         android:id="@+id/customerRentalHistoryFragment"
         android:name="com.example.toolsonrent.ui.reports.customerhistory.CustomerRentalHistoryFragment"
         android:label="Customer Rental History"
         tools:layout="@layout/fragment_customer_rental_history">
-        <argument
-            android:name="customerId"
-            app:argType="integer" />
+        <argument android:name="customerId" app:argType="integer" />
     </fragment>
-
     <fragment
         android:id="@+id/selectToolForReportFragment"
         android:name="com.example.toolsonrent.ui.reports.toolhistory.SelectToolForReportFragment"
@@ -153,28 +157,21 @@
         <action
             android:id="@+id/action_selectToolForReportFragment_to_toolRentalHistoryFragment"
             app:destination="@+id/toolRentalHistoryFragment">
-            <argument
-                android:name="toolId"
-                app:argType="integer" />
+            <argument android:name="toolId" app:argType="integer" />
         </action>
     </fragment>
-
     <fragment
         android:id="@+id/toolRentalHistoryFragment"
         android:name="com.example.toolsonrent.ui.reports.toolhistory.ToolRentalHistoryFragment"
         android:label="Tool Rental History"
         tools:layout="@layout/fragment_tool_rental_history">
-        <argument
-            android:name="toolId"
-            app:argType="integer" />
+        <argument android:name="toolId" app:argType="integer" />
     </fragment>
-
     <fragment
         android:id="@+id/inventoryReportFragment"
         android:name="com.example.toolsonrent.ui.reports.inventory.InventoryReportFragment"
         android:label="Inventory Report"
         tools:layout="@layout/fragment_inventory_report" />
-
     <fragment
         android:id="@+id/profitLossReportFragment"
         android:name="com.example.toolsonrent.ui.reports.profitloss.ProfitLossReportFragment"
