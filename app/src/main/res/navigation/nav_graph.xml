@@ -82,7 +82,17 @@
         android:id="@+id/nav_rentals"
         android:name="com.example.toolsonrent.ui.rentals.RentalsFragment"
         android:label="Rentals"
-        tools:layout="@layout/fragment_rentals" />
+        tools:layout="@layout/fragment_rentals">
+
+        <action
+            android:id="@+id/action_nav_rentals_to_startRentalFragment"
+            app:destination="@id/startRentalFragment" />
+
+        <action
+            android:id="@+id/action_nav_rentals_to_activeRentalsFragment"
+            app:destination="@id/activeRentalsFragment" />
+
+    </fragment>
 
     <!-- New Settings Fragment Destination -->
     <fragment

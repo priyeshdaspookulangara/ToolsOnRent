@@ -1,14 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
     tools:context=".ui.rentals.RentalsFragment">
 
     <TextView
+        android:id="@+id/textViewRentalsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Rentals Fragment Placeholder"
-        android:textAppearance="?attr/textAppearanceHeadline6"
-        android:layout_gravity="center"/>
-</FrameLayout>
+        android:text="Rental Management"
+        android:textAppearance="?attr/textAppearanceHeadline5"
+        android:layout_marginBottom="32dp"/>
+
+    <Button
+        android:id="@+id/buttonGoToStartRental"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
+        android:text="Start New Rental"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/buttonGoToActiveRentals"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
+        style="?attr/materialButtonOutlinedStyle"
+        android:text="View/Manage Active Rentals"/>
+
+</LinearLayout>
