@@ -18,31 +18,32 @@ class InventoryReportViewModel(application: Application) : AndroidViewModel(appl
     val allToolsList: StateFlow<List<Tool>> = toolDao.getAllTools()
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L), // Keeps flow active for 5s after last collector stops.
-            initialValue = emptyList() // Initial value before data is loaded.
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = emptyList()
         )
 
-    // StateFlow for the total count of tools, derived from allToolsList.
+    // Updated: StateFlow for the total count of all tool units (sum of totalQuantity for each tool type).
     val totalToolsCount: StateFlow<Int> = allToolsList.map { tools ->
-        tools.size
+        tools.sumOf { it.totalQuantity }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000L),
         initialValue = 0
     )
 
-    // StateFlow for the count of available tools, derived from allToolsList.
+    // Updated: StateFlow for the total count of all available tool units (sum of currentAvailableQuantity).
     val availableToolsCount: StateFlow<Int> = allToolsList.map { tools ->
-        tools.count { it.isAvailable } // Counts tools where isAvailable is true.
+        tools.sumOf { it.currentAvailableQuantity }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000L),
         initialValue = 0
     )
 
-    // StateFlow for the count of rented (unavailable) tools, derived from allToolsList.
+    // Updated: StateFlow for the total count of all rented tool units
+    // (sum of totalQuantity - currentAvailableQuantity).
     val rentedToolsCount: StateFlow<Int> = allToolsList.map { tools ->
-        tools.count { !it.isAvailable } // Counts tools where isAvailable is false.
+        tools.sumOf { it.totalQuantity - it.currentAvailableQuantity }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000L),

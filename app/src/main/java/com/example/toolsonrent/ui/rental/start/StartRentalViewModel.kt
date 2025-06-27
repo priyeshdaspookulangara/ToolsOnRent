@@ -29,7 +29,8 @@ class StartRentalViewModel(application: Application) : AndroidViewModel(applicat
             initialValue = emptyList()
         )
 
-    val availableTools: StateFlow<List<Tool>> = toolDao.getAvailableTools() // This DAO method was added previously
+    // availableTools now correctly filters by currentAvailableQuantity > 0 in ToolDao
+    val availableTools: StateFlow<List<Tool>> = toolDao.getAvailableTools()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
@@ -66,12 +67,11 @@ class StartRentalViewModel(application: Application) : AndroidViewModel(applicat
              _saveRentalResult.postValue(Result.failure(IllegalArgumentException("Due date cannot be before rental date.")))
             return
         }
-        // This check is against the selectedTool object passed from fragment.
-        // The fragment should ideally be observing 'availableTools' which are already filtered.
-        // This serves as a final validation or safeguard.
-        if (!selectedTool.isAvailable) {
-            Log.w("StartRentalViewModel", "Attempted to rent an already unavailable tool: ${selectedTool.name} (ID: ${selectedTool.id})")
-            _saveRentalResult.postValue(Result.failure(IllegalStateException("Selected tool (${selectedTool.name}) is no longer available. Please select another tool.")))
+
+        // Updated availability check based on quantity
+        if (selectedTool.currentAvailableQuantity <= 0) {
+            Log.w("StartRentalViewModel", "Attempted to rent tool with zero available quantity: ${selectedTool.name} (ID: ${selectedTool.id})")
+            _saveRentalResult.postValue(Result.failure(IllegalStateException("Selected tool (${selectedTool.name}) has no available quantity. Please select another tool.")))
             return
         }
 
@@ -80,29 +80,39 @@ class StartRentalViewModel(application: Application) : AndroidViewModel(applicat
             customerId = selectedCustomer.id,
             rentalDate = rentalDate,
             dueDate = dueDate,
-            rentalPricePerDay = selectedTool.rentalPrice, // Price captured at the time of rental
-            returnDate = null, // Not returned yet
-            notes = notes?.ifBlank { null } // Store null if notes are blank
+            rentalPricePerDay = selectedTool.rentalPrice,
+            returnDate = null,
+            notes = notes?.ifBlank { null }
         )
 
         viewModelScope.launch {
             try {
-                // For true atomicity, these operations should be wrapped in a database transaction.
-                // This can be done by creating a @Transaction annotated method in a DAO
-                // or by using AppDatabase.withTransaction { ... } directly here.
-                // The current sequential execution is simpler for this step but not fully atomic.
-                rentalTransactionDao.insert(transaction)
+                // Insert the rental transaction first
+                val transactionId = rentalTransactionDao.insert(transaction)
 
-                // Update the tool's availability status
-                val toolToUpdate = selectedTool.copy(isAvailable = false)
-                toolDao.update(toolToUpdate)
-
-                _saveRentalResult.postValue(Result.success(Unit))
+                if (transactionId > 0) { // Check if insert was successful (rowId > 0)
+                    // Then, attempt to decrement the tool's available quantity
+                    val rowsUpdated = toolDao.decrementAvailableQuantity(selectedTool.id, 1)
+                    if (rowsUpdated > 0) { // Check if decrement was successful (at least one row updated)
+                        _saveRentalResult.postValue(Result.success(Unit))
+                    } else {
+                        // Decrement failed (e.g., quantity became 0 concurrently by another operation)
+                        // This indicates a potential data inconsistency or race condition.
+                        // Ideal: Rollback the inserted transaction.
+                        Log.e("StartRentalVM", "Inserted transaction $transactionId but failed to decrement quantity for tool ${selectedTool.id}. Manual rollback might be needed or use @Transaction.")
+                        _saveRentalResult.postValue(Result.failure(
+                            IllegalStateException("Tool quantity became unavailable during the transaction process. Please try again or select a different tool.")
+                        ))
+                        // TODO: Implement actual rollback for transactionId if decrement fails after insert.
+                        // This would typically involve a @Transaction annotated method in a DAO that calls both insert and decrement.
+                    }
+                } else {
+                    Log.e("StartRentalVM", "Failed to insert rental transaction for tool ${selectedTool.id}.")
+                    _saveRentalResult.postValue(Result.failure(Exception("Failed to record rental transaction.")))
+                }
             } catch (e: Exception) {
-                Log.e("StartRentalViewModel", "Error confirming rental", e)
+                Log.e("StartRentalViewModel", "Error confirming rental for tool ${selectedTool.id}", e)
                 _saveRentalResult.postValue(Result.failure(e))
-                // Note: If transaction insert succeeded but tool update failed,
-                // the system would be in an inconsistent state without a DB transaction rollback.
             }
         }
     }

@@ -85,16 +85,21 @@ class ActiveRentalsViewModel(application: Application) : AndroidViewModel(applic
                 val updatedTransaction = transaction.copy(returnDate = returnDate)
                 rentalTransactionDao.update(updatedTransaction)
 
-                // 4. Fetch the associated tool
-                // Ensure toolDao.getToolById returns Flow<Tool?>
-                val tool = toolDao.getToolById(toolId).firstOrNull()
-                           ?: throw IllegalStateException("Tool with ID $toolId not found for this transaction.")
+                // 4. Attempt to increment the tool's available quantity
+                val rowsUpdated = toolDao.incrementAvailableQuantity(toolId, 1)
 
-                // 5. Update the tool's availability
-                val updatedTool = tool.copy(isAvailable = true)
-                toolDao.update(updatedTool)
-
-                _rentalCompletionResult.postValue(Result.success(Unit))
+                if (rowsUpdated > 0) {
+                    _rentalCompletionResult.postValue(Result.success(Unit))
+                } else {
+                    // Increment failed (e.g., currentAvailableQuantity + 1 would exceed totalQuantity).
+                    // This indicates a potential data inconsistency (e.g., tool was already returned via another process,
+                    // or totalQuantity is misconfigured).
+                    // For the user, the rental is marked as complete, so this is primarily a data integrity issue to log.
+                    Log.w("ActiveRentalsVM", "Transaction $transactionId completed, but failed to increment quantity for tool $toolId (already at max or data issue).")
+                    // We still consider the operation a success from the user's perspective of returning the tool.
+                    _rentalCompletionResult.postValue(Result.success(Unit))
+                    // TODO: Consider a more specific Result type or logging channel for admin review of such inconsistencies.
+                }
 
             } catch (e: Exception) {
                 Log.e("ActiveRentalsVM", "Error completing rental for transaction ID $transactionId, Tool ID $toolId", e)

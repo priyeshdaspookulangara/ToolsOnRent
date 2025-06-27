@@ -14,11 +14,11 @@ import com.example.toolsonrent.database.entity.RentalTransaction // New import
 import com.example.toolsonrent.database.entity.Tool
 
 @Database(
-    entities = [Tool::class, Customer::class, RentalTransaction::class], // Updated entities
-    version = 3, // Incremented version
+    entities = [Tool::class, Customer::class, RentalTransaction::class],
+    version = 4, // Incremented from 3 to 4
     exportSchema = false
 )
-@TypeConverters(DateConverter::class) // Added TypeConverter for Date
+@TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun toolDao(): ToolDao

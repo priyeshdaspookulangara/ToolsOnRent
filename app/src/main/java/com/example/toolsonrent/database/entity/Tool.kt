@@ -10,6 +10,8 @@ data class Tool(
     val name: String,
     val description: String?,
     val rentalPrice: Double,
-    val isAvailable: Boolean = true,
+    // val isAvailable: Boolean = true, // REMOVED as per plan
+    var totalQuantity: Int,             // ADDED - Made var assuming it can be edited
+    var currentAvailableQuantity: Int,  // ADDED - Made var as it changes with rentals/returns
     val imageUri: String?
 )

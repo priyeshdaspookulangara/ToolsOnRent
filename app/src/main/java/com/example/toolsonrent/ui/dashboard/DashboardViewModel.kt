@@ -1,34 +1,53 @@
 package com.example.toolsonrent.ui.dashboard
 
 import android.app.Application
-import android.util.Log // Added for new flow logic
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.toolsonrent.database.AppDatabase
 import com.example.toolsonrent.database.entity.RentalTransaction
-import com.example.toolsonrent.database.entity.Tool // Needed for toolsMap in new flow
-import com.example.toolsonrent.database.entity.Customer // Needed for customersMap in new flow
-import com.example.toolsonrent.ui.dashboard.calendar.details.DailyRentalDetailItem // New import
+import com.example.toolsonrent.database.entity.Tool
+import com.example.toolsonrent.database.entity.Customer
+import com.example.toolsonrent.ui.dashboard.calendar.details.DailyRentalDetailItem
 import com.prolificinteractive.materialcalendarview.CalendarDay
-import kotlinx.coroutines.ExperimentalCoroutinesApi // For flatMapLatest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-@OptIn(ExperimentalCoroutinesApi::class) // Apply at class level
+@OptIn(ExperimentalCoroutinesApi::class)
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val toolDao = AppDatabase.getInstance(application).toolDao()
     private val rentalTransactionDao = AppDatabase.getInstance(application).rentalTransactionDao()
-    private val customerDao = AppDatabase.getInstance(application).customerDao() // Added for new flow
+    private val customerDao = AppDatabase.getInstance(application).customerDao()
 
-    // Existing counts
-    val availableToolsCount: StateFlow<Int> = toolDao.getAvailableToolsCount()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
+    // Base list of all tools for deriving quantity-based counts
+    private val allToolsListDashboard: StateFlow<List<Tool>> = toolDao.getAllTools()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = emptyList()
+        )
 
-    val rentedToolsCount: StateFlow<Int> = toolDao.getRentedToolsCount()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
+    // Updated availableToolsCount: sum of currentAvailableQuantity for all tools
+    val availableToolsCount: StateFlow<Int> = allToolsListDashboard.map { tools ->
+        tools.sumOf { it.currentAvailableQuantity }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = 0
+    )
+
+    // Updated rentedToolsCount: sum of (totalQuantity - currentAvailableQuantity) for all tools
+    val rentedToolsCount: StateFlow<Int> = allToolsListDashboard.map { tools ->
+        tools.sumOf { it.totalQuantity - it.currentAvailableQuantity }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = 0
+    )
 
     val overdueToolsCount: StateFlow<Int> = rentalTransactionDao.getOverdueRentals(System.currentTimeMillis())
         .map { it.size }
@@ -97,9 +116,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         transactions.filter { it.dueDate.time >= tomorrowStartMillis }.map { it.dueDate.toCalendarDay() }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptySet())
 
-    // --- Logic for Selected Date Details ---
     private val _selectedCalendarDayForDetails = MutableStateFlow<CalendarDay?>(null)
-    val selectedCalendarDayForDetails: StateFlow<CalendarDay?> = _selectedCalendarDayForDetails.asStateFlow() // Expose this for the BottomSheet title
+    val selectedCalendarDayForDetails: StateFlow<CalendarDay?> = _selectedCalendarDayForDetails.asStateFlow()
 
     fun userSelectedDateForDetails(calendarDay: CalendarDay?) {
         _selectedCalendarDayForDetails.value = calendarDay
@@ -112,7 +130,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 flowOf(emptyList())
             } else {
                 combine(
-                    activeRentalsFlow, // Use the shared flow of active rentals
+                    activeRentalsFlow,
                     toolDao.getAllTools(),
                     customerDao.getAllCustomers()
                 ) { transactions, tools, customers ->
@@ -127,7 +145,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                         val customer = customersMap[transaction.customerId]
 
                         if (tool != null && customer != null) {
-                            val dueCalDay = selectedDay // Since we filtered by this
+                            val dueCalDay = selectedDay
                             val status = when {
                                 dueCalDay.isBefore(currentCalDay) -> "Overdue (Was due this day)"
                                 dueCalDay == currentCalDay -> "Due Today"

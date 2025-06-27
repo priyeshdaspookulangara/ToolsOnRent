@@ -26,12 +26,29 @@ interface ToolDao {
     @Query("SELECT * FROM tools WHERE id = :toolId")
     fun getToolById(toolId: Int): Flow<Tool?>
 
-    @Query("SELECT COUNT(id) FROM tools WHERE isAvailable = 1")
-    fun getAvailableToolsCount(): kotlinx.coroutines.flow.Flow<Int>
+    // Updated to reflect quantity-based availability
+    @Query("SELECT * FROM tools WHERE currentAvailableQuantity > 0 ORDER BY name ASC")
+    fun getAvailableTools(): Flow<List<Tool>>
 
-    @Query("SELECT COUNT(id) FROM tools WHERE isAvailable = 0")
-    fun getRentedToolsCount(): kotlinx.coroutines.flow.Flow<Int>
+    /**
+     * Decrements the currentAvailableQuantity of a tool by the given count.
+     * This operation will only succeed if currentAvailableQuantity >= count.
+     * Consider checking the return value (number of rows updated) in ViewModel/Repository
+     * to confirm if the decrement was successful.
+     */
+    @Query("UPDATE tools SET currentAvailableQuantity = currentAvailableQuantity - :count WHERE id = :toolId AND currentAvailableQuantity >= :count")
+    suspend fun decrementAvailableQuantity(toolId: Int, count: Int = 1): Int // Returns number of rows updated
 
-    @Query("SELECT * FROM tools WHERE isAvailable = 1 ORDER BY name ASC")
-    fun getAvailableTools(): kotlinx.coroutines.flow.Flow<List<com.example.toolsonrent.database.entity.Tool>>
+    /**
+     * Increments the currentAvailableQuantity of a tool by the given count.
+     * This operation will only succeed if currentAvailableQuantity + count <= totalQuantity.
+     * Consider checking the return value (number of rows updated) in ViewModel/Repository
+     * to confirm if the increment was successful.
+     */
+    @Query("UPDATE tools SET currentAvailableQuantity = currentAvailableQuantity + :count WHERE id = :toolId AND currentAvailableQuantity + :count <= totalQuantity")
+    suspend fun incrementAvailableQuantity(toolId: Int, count: Int = 1): Int // Returns number of rows updated
+
+    // Old count methods based on isAvailable are removed.
+    // New count logic for dashboard metrics will be handled by ViewModels or new specific DAO queries if needed.
+    // For example, DashboardViewModel might sum quantities from the Tool list or use specific SUM() queries.
 }
