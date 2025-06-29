@@ -44,4 +44,7 @@ interface RentalTransactionDao {
 
     @Query("SELECT * FROM rental_transactions WHERE returnDate IS NOT NULL AND rentalDate >= :startDate AND rentalDate <= :endDate ORDER BY rentalDate DESC")
     fun getCompletedTransactionsInRange(startDate: Long, endDate: Long): kotlinx.coroutines.flow.Flow<List<com.example.toolsonrent.database.entity.RentalTransaction>>
+
+    @Query("SELECT COUNT(id) FROM rental_transactions WHERE returnDate IS NOT NULL")
+    fun getCompletedTransactionsCount(): kotlinx.coroutines.flow.Flow<Int>
 }

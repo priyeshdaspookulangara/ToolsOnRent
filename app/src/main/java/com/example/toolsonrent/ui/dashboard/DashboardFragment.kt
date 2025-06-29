@@ -53,6 +53,7 @@ class DashboardFragment : Fragment() {
         setupNavigationButtonListeners()
         observeDashboardMetrics()
         observeCalendarDecorators()
+        setupKpiCards() // New call
 
         // Updated MaterialCalendarView listener
         binding.materialCalendarDashboard.setOnDateChangedListener { widget, date, selected ->
@@ -127,6 +128,52 @@ class DashboardFragment : Fragment() {
     private fun handleNavError(actionName: String, exception: IllegalArgumentException) {
         Log.e("DashboardFragment", "Navigation for '$actionName' failed. Action not found.", exception)
         Toast.makeText(context, "Error: $actionName action not found.", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun setupKpiCards() {
+        // Due Tool Returns Card
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.dueToolReturnsCount.collectLatest { count ->
+                    binding.includeDueToolReturnsCard.textViewKpiCount.text = count.toString()
+                }
+            }
+        }
+        binding.includeDueToolReturnsCard.textViewKpiLabel.text = getString(R.string.kpi_label_due_returns) // "Due Returns"
+        binding.includeDueToolReturnsCard.imageViewKpiIcon.setImageResource(R.drawable.ic_kpi_due_alert_24)
+        binding.includeDueToolReturnsCard.kpiCardViewRoot.setCardBackgroundColor(
+            ContextCompat.getColor(requireContext(), R.color.kpi_due_background_pale_red)
+        )
+        binding.includeDueToolReturnsCard.kpiCardViewRoot.setOnClickListener {
+            try {
+                // Assuming action_dashboardFragment_to_overdueRentalsReportFragment is the correct, existing ID
+                findNavController().navigate(R.id.action_dashboardFragment_to_overdueRentalsReportFragment)
+            } catch (e: Exception) { // Catch generic Exception as Nav errors can be various
+                handleNavError(getString(R.string.kpi_nav_error_due_returns_report), e as IllegalArgumentException) // Cast for existing handler
+            }
+        }
+
+        // Total Completed Transactions Card
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.totalCompletedTransactionsCount.collectLatest { count ->
+                    binding.includeTotalTransactionsCard.textViewKpiCount.text = count.toString()
+                }
+            }
+        }
+        binding.includeTotalTransactionsCard.textViewKpiLabel.text = getString(R.string.kpi_label_completed_txns) // "Completed Txns"
+        binding.includeTotalTransactionsCard.imageViewKpiIcon.setImageResource(R.drawable.ic_kpi_transactions_24)
+        binding.includeTotalTransactionsCard.kpiCardViewRoot.setCardBackgroundColor(
+            ContextCompat.getColor(requireContext(), R.color.kpi_info_background_pale_blue)
+        )
+        binding.includeTotalTransactionsCard.kpiCardViewRoot.setOnClickListener {
+            try {
+                // This action (and destination) R.id.action_nav_dashboard_to_allCompletedTransactionsFragment will be created in a subsequent step
+                findNavController().navigate(R.id.action_nav_dashboard_to_allCompletedTransactionsFragment)
+            } catch (e: Exception) {
+                 handleNavError(getString(R.string.kpi_nav_error_total_txns_report), e as IllegalArgumentException) // Cast for existing handler
+            }
+        }
     }
 
     private fun observeDashboardMetrics() {

@@ -22,6 +22,31 @@
             android:textAppearance="?attr/textAppearanceHeadline5"
             android:layout_marginBottom="16dp"/> <!-- Increased bottom margin -->
 
+        <LinearLayout
+            android:id="@+id/linearLayoutKpiCards"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false">
+
+            <include
+                android:id="@+id/includeDueToolReturnsCard"
+                layout="@layout/kpi_card_item"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                />
+
+            <include
+                android:id="@+id/includeTotalTransactionsCard"
+                layout="@layout/kpi_card_item"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                />
+        </LinearLayout>
+
         <!-- Available Tools Metric -->
         <LinearLayout
             android:layout_width="match_parent"

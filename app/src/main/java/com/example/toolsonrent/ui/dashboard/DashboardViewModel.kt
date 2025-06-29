@@ -53,6 +53,31 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 0)
 
+    // KPI: Count of tools that are currently overdue OR will be due by the end of today
+    val dueToolReturnsCount: StateFlow<Int> = flow {
+        val calendar = java.util.Calendar.getInstance()
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 23)
+        calendar.set(java.util.Calendar.MINUTE, 59)
+        calendar.set(java.util.Calendar.SECOND, 59)
+        calendar.set(java.util.Calendar.MILLISECOND, 999)
+        val endOfTodayMillis = calendar.timeInMillis
+        // rentalTransactionDao.getOverdueRentals(currentDate) returns items WHERE returnDate IS NULL AND dueDate < currentDate
+        // So this correctly gets items due anytime before end of today (i.e., today or earlier) and not returned.
+        emitAll(rentalTransactionDao.getOverdueRentals(endOfTodayMillis).map { it.size })
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = 0
+    )
+
+    // KPI: Total count of all completed transactions
+    val totalCompletedTransactionsCount: StateFlow<Int> = rentalTransactionDao.getCompletedTransactionsCount()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = 0
+        )
+
     private fun calculateProfitFromTransactions(transactions: List<RentalTransaction>): Double {
         return transactions.sumOf { transaction ->
             if (transaction.returnDate == null) return@sumOf 0.0

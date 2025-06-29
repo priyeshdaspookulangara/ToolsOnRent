@@ -47,6 +47,9 @@
         <action
             android:id="@+id/action_dashboardFragment_to_addCustomerFragment"
             app:destination="@id/addCustomerFragment" />
+        <action
+            android:id="@+id/action_nav_dashboard_to_allCompletedTransactionsFragment"
+            app:destination="@id/allCompletedTransactionsFragment" />
     </fragment>
 
     <!-- Tool List/Inventory Fragment (Renamed ID & Label) -->
@@ -188,4 +191,9 @@
         android:label="Profit &amp; Loss Report"
         tools:layout="@layout/fragment_profit_loss_report" />
 
+    <fragment
+        android:id="@+id/allCompletedTransactionsFragment"
+        android:name="com.example.toolsonrent.ui.reports.alltransactions.AllCompletedTransactionsFragment"
+        android:label="All Completed Transactions"
+        tools:layout="@layout/fragment_all_completed_transactions" />
 </navigation>

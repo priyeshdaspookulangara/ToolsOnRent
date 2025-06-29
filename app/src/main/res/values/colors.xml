@@ -5,4 +5,8 @@
     <color name="calendar_due_today_yellow">#FFC107</color> <!-- Amber 500 / Yellow -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- KPI Card Colors -->
+    <color name="kpi_due_background_pale_red">#FFCDD2</color> <!-- Pale Red (Red 100) -->
+    <color name="kpi_info_background_pale_blue">#BBDEFB</color> <!-- Pale Blue (Blue 100) -->
 </resources>
