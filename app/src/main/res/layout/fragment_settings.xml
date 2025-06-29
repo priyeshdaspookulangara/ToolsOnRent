@@ -1,14 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center_horizontal"
     tools:context=".ui.settings.SettingsFragment">
 
     <TextView
+        android:id="@+id/textViewSettingsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Settings Fragment Placeholder"
-        android:textAppearance="?attr/textAppearanceHeadline6"
-        android:layout_gravity="center"/>
-</FrameLayout>
+        android:text="App Settings"
+        android:textAppearance="?attr/textAppearanceHeadline5"
+        android:layout_marginBottom="32dp"/>
+
+    <Button
+        android:id="@+id/buttonBackupDatabase"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Backup Database"
+        android:minHeight="56dp"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/textViewBackupStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_horizontal"
+        tools:text="Backup Status: Idle"
+        android:textAppearance="?attr/textAppearanceBody2"/>
+
+    <!-- Placeholder for Restore button later -->
+    <Button
+        android:id="@+id/buttonRestoreDatabase"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Restore Database from Backup"
+        android:minHeight="56dp"
+        android:layout_marginTop="24dp"
+        style="?attr/materialButtonOutlinedStyle"/>
+        <!-- android:enabled="true" is default, so removing android:enabled="false" -->
+
+</LinearLayout>
