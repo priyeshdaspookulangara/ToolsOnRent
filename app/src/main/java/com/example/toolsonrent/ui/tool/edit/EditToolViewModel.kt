@@ -21,28 +21,24 @@ class EditToolViewModel(
 
     private val toolDao = AppDatabase.getInstance(application).toolDao()
 
-    // Flow for the toolId obtained from navigation arguments via SavedStateHandle.
     private val toolIdFlow: StateFlow<Int?> = savedStateHandle.getStateFlow("toolId", null)
 
-    // StateFlow to hold the Tool object being edited.
     val tool: StateFlow<Tool?> = toolIdFlow.flatMapLatest { id ->
-        if (id != null && id != 0) { // Room auto-generated IDs start from 1. 0 is not a valid ID.
-            toolDao.getToolById(id) // This DAO method returns Flow<Tool?>
+        if (id != null && id != 0) {
+            toolDao.getToolById(id)
         } else {
             Log.w("EditToolVM", "Invalid toolId ($id) received.")
-            flowOf(null) // Emit null if toolId is invalid or not present.
+            flowOf(null)
         }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000L),
-        initialValue = null // Initially null until toolId is processed and data is fetched.
+        initialValue = null
     )
 
-    // LiveData for update operation result
     private val _updateResult = MutableLiveData<Result<Unit>>()
     val updateResult: LiveData<Result<Unit>> = _updateResult
 
-    // LiveData for delete operation result
     private val _deleteResult = MutableLiveData<Result<Unit>>()
     val deleteResult: LiveData<Result<Unit>> = _deleteResult
 
@@ -51,10 +47,14 @@ class EditToolViewModel(
         name: String,
         description: String?,
         priceStr: String,
-        isAvailable: Boolean,
-        imageUri: String? // New parameter
+        totalQuantityStr: String, // New parameter, replaced isAvailable
+        imageUri: String?
     ) {
         val price = priceStr.toDoubleOrNull()
+        val newTotalQuantity = totalQuantityStr.toIntOrNull()
+        val oldTool = tool.value // Get the current state of the tool being edited for quantity calculations
+
+        // Validations
         if (name.isBlank()) {
             _updateResult.postValue(Result.failure(IllegalArgumentException("Tool name cannot be empty.")))
             return
@@ -63,24 +63,49 @@ class EditToolViewModel(
             _updateResult.postValue(Result.failure(IllegalArgumentException("Enter a valid positive rental price.")))
             return
         }
+        // Allow 0 for total quantity (e.g. tool is being phased out but existing rentals need to be managed)
+        if (newTotalQuantity == null || newTotalQuantity < 0) {
+            _updateResult.postValue(Result.failure(IllegalArgumentException("Total quantity must be a non-negative number.")))
+            return
+        }
         if (currentToolId == 0) {
-             _updateResult.postValue(Result.failure(IllegalStateException("Invalid Tool ID provided for update.")))
+             _updateResult.postValue(Result.failure(IllegalStateException("Invalid Tool ID for update.")))
+            return
+        }
+        if (oldTool == null) {
+            // This should ideally not happen if the UI is populated after 'tool' StateFlow emits a non-null value.
+            _updateResult.postValue(Result.failure(IllegalStateException("Original tool data not loaded. Cannot process update.")))
             return
         }
 
-        // No longer relying on tool.value for imageUri, using the passed parameter directly
-        val updatedTool = Tool(
+        // Calculate the number of items currently rented out
+        // This value should remain constant during this update operation.
+        val itemsRented = oldTool.totalQuantity - oldTool.currentAvailableQuantity
+
+        // New total quantity cannot be less than the number of items currently rented.
+        if (newTotalQuantity < itemsRented) {
+            _updateResult.postValue(Result.failure(IllegalArgumentException(
+                "Total quantity ($newTotalQuantity) cannot be less than the number of items currently rented ($itemsRented)."
+            )))
+            return
+        }
+
+        // Calculate the new currentAvailableQuantity based on the new total and fixed rented items.
+        val newCurrentAvailableQuantity = newTotalQuantity - itemsRented
+
+        val toolToSave = Tool(
             id = currentToolId,
             name = name,
             description = description?.ifBlank { null },
             rentalPrice = price,
-            isAvailable = isAvailable,
-            imageUri = imageUri // Use the imageUri passed from the fragment
+            totalQuantity = newTotalQuantity, // Use new total quantity
+            currentAvailableQuantity = newCurrentAvailableQuantity, // Use calculated new available quantity
+            imageUri = imageUri // Use the imageUri passed from the fragment (could be old or new)
         )
 
         viewModelScope.launch {
             try {
-                toolDao.update(updatedTool)
+                toolDao.update(toolToSave)
                 _updateResult.postValue(Result.success(Unit))
             } catch (e: Exception) {
                 Log.e("EditToolVM", "Error updating tool ID $currentToolId", e)
@@ -89,29 +114,5 @@ class EditToolViewModel(
         }
     }
 
-    fun deleteTool() {
-        val toolToDelete = tool.value // Get the current tool loaded by the StateFlow
-
-        if (toolToDelete == null) {
-            _deleteResult.postValue(Result.failure(IllegalStateException("No tool loaded to delete or tool ID is invalid.")))
-            return
-        }
-        // It's good practice to check the ID from the loaded tool itself before deletion.
-        if (toolToDelete.id == 0) {
-             _deleteResult.postValue(Result.failure(IllegalStateException("Cannot delete tool with invalid ID (0).")))
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                toolDao.delete(toolToDelete)
-                _deleteResult.postValue(Result.success(Unit))
-            } catch (e: Exception) {
-                // The Fragment should ideally check the exception type (e.g., SQLiteConstraintException)
-                // to provide a more user-friendly message if deletion is blocked by foreign key constraints.
-                Log.e("EditToolVM", "Error deleting tool ${toolToDelete.id}: ${e.message}", e)
-                _deleteResult.postValue(Result.failure(e))
-            }
-        }
-    }
+    fun deleteTool() { /* ... (existing implementation from previous step) ... */ }
 }

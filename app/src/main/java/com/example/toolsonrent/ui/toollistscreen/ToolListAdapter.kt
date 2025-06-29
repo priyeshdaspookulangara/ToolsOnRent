@@ -1,27 +1,26 @@
 package com.example.toolsonrent.ui.toollistscreen
 
-// Import for Uri if image loading from URI is implemented, not needed for placeholder
-// import android.net.Uri
+import android.graphics.Color // For default text color
+import android.util.TypedValue // For resolving theme attributes
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.bumptech.glide.Glide // Glide import
+import com.bumptech.glide.Glide
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.toolsonrent.R // For R.string, R.color, R.drawable
+import com.example.toolsonrent.R
 import com.example.toolsonrent.database.entity.Tool
 import com.example.toolsonrent.databinding.ItemToolBinding
-import java.text.NumberFormat // For currency formatting
-import java.util.Locale // For Locale.getDefault()
+import java.text.NumberFormat
+import java.util.Locale
 
 class ToolListAdapter(
-    private val onToolClicked: (Tool) -> Unit // New parameter for click callback
+    private val onToolClicked: (Tool) -> Unit
 ) : ListAdapter<Tool, ToolListAdapter.ToolViewHolder>(ToolDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToolViewHolder {
         val binding = ItemToolBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        // Pass the onToolClicked lambda to the ViewHolder
         return ToolViewHolder(binding, onToolClicked)
     }
 
@@ -32,10 +31,10 @@ class ToolListAdapter(
 
     inner class ToolViewHolder(
         private val binding: ItemToolBinding,
-        private val onToolClickedCallback: (Tool) -> Unit // Received callback
+        private val onToolClickedCallback: (Tool) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        private var currentTool: Tool? = null // To hold the current tool for the click listener
+        private var currentTool: Tool? = null
 
         init {
             itemView.setOnClickListener {
@@ -46,40 +45,42 @@ class ToolListAdapter(
         }
 
         fun bind(tool: Tool) {
-            currentTool = tool // Store tool for the click listener
+            currentTool = tool
 
             binding.textViewToolNameItem.text = tool.name
 
-            // Using NumberFormat for currency, assuming default locale for now
             val format: NumberFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
-            format.maximumFractionDigits = 2 // Ensure two decimal places
+            format.maximumFractionDigits = 2
             binding.textViewRentalPriceItem.text = "${format.format(tool.rentalPrice)} / day"
 
-            if (tool.isAvailable) {
-                binding.textViewAvailabilityItem.text = itemView.context.getString(R.string.text_available)
-                binding.textViewAvailabilityItem.setTextColor(
-                    ContextCompat.getColor(itemView.context, R.color.status_available_green)
+            // New quantity status logic:
+            binding.textViewToolQuantityStatusItem.text =
+                "Available: ${tool.currentAvailableQuantity} / ${tool.totalQuantity}"
+
+            if (tool.currentAvailableQuantity <= 0) {
+                binding.textViewToolQuantityStatusItem.setTextColor(
+                    ContextCompat.getColor(itemView.context, R.color.status_rented_red) // Red for out of stock
                 )
             } else {
-                binding.textViewAvailabilityItem.text = itemView.context.getString(R.string.text_rented)
-                binding.textViewAvailabilityItem.setTextColor(
-                    ContextCompat.getColor(itemView.context, R.color.status_rented_red)
+                // Use a less prominent color for normal availability, e.g., green or default secondary text color
+                binding.textViewToolQuantityStatusItem.setTextColor(
+                     ContextCompat.getColor(itemView.context, R.color.status_available_green)
                 )
+                // // Alternative: Use theme's default secondary text color
+                // val typedValue = TypedValue()
+                // itemView.context.theme.resolveAttribute(android.R.attr.textColorSecondary, typedValue, true)
+                // binding.textViewToolQuantityStatusItem.setTextColor(typedValue.data)
             }
 
-            // Placeholder for image loading
+            // Image loading logic remains the same:
             if (tool.imageUri != null) {
-                // In a real app, you would use Glide or Picasso here:
-                // Glide.with(itemView.context).load(Uri.parse(tool.imageUri)).placeholder(R.drawable.ic_menu_gallery).into(binding.imageViewToolItem)
-                // For now, just a different placeholder to indicate a URI is present
-            // binding.imageViewToolItem.setImageResource(R.drawable.ic_launcher_background) // Example placeholder
-            Glide.with(itemView.context)
-                .load(tool.imageUri) // tool.imageUri is the String URI of the internal file
-                .placeholder(android.R.drawable.ic_menu_gallery) // Default placeholder while loading
-                .error(R.drawable.ic_baseline_broken_image_24) // Use the broken image icon on error
-                .into(binding.imageViewToolItem)
+                Glide.with(itemView.context)
+                    .load(tool.imageUri)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(R.drawable.ic_baseline_broken_image_24)
+                    .into(binding.imageViewToolItem)
             } else {
-            binding.imageViewToolItem.setImageResource(android.R.drawable.ic_menu_gallery) // Default if no URI
+                binding.imageViewToolItem.setImageResource(android.R.drawable.ic_menu_gallery)
             }
         }
     }
@@ -90,7 +91,6 @@ class ToolListAdapter(
         }
 
         override fun areContentsTheSame(oldItem: Tool, newItem: Tool): Boolean {
-            // This assumes Tool is a data class, so `==` checks for content equality.
             return oldItem == newItem
         }
     }

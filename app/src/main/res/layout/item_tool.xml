@@ -32,9 +32,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceHeadline6"
-            tools:text="Very Long Tool Name That Might Wrap"
+            tools:text="Very Long Tool Name That Might Wrap Example"
             app:layout_constraintStart_toEndOf="@id/imageViewToolItem"
-            app:layout_constraintEnd_toStartOf="@+id/textViewAvailabilityItem"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/imageViewToolItem"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="8dp"/>
@@ -51,14 +51,17 @@
             android:layout_marginTop="4dp"/>
 
         <TextView
-            android:id="@+id/textViewAvailabilityItem"
-            android:layout_width="wrap_content"
+            android:id="@+id/textViewToolQuantityStatusItem"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceSubtitle2"
-            tools:text="Available"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBaseline_toBaselineOf="@id/textViewToolNameItem"
-            android:textColor="?attr/colorPrimary"/>
+            android:textAppearance="?attr/textAppearanceBody2"
+            tools:text="Available: 3 / 5"
+            app:layout_constraintStart_toStartOf="@id/textViewRentalPriceItem"
+            app:layout_constraintEnd_toEndOf="@id/textViewRentalPriceItem"
+            app:layout_constraintTop_toBottomOf="@id/textViewRentalPriceItem"
+            android:layout_marginTop="4dp"/>
+
+        <!-- textViewAvailabilityItem has been removed -->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
