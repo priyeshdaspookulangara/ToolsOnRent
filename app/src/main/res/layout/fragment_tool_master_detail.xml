@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    tools:context=".ui.toolmasterdetail.ToolMasterDetailFragment">
+    <!-- Assuming a new package for this fragment -->
+
+    <!-- Left Pane: Tool Types List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewToolTypes"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:padding="8dp"
+        tools:listitem="@layout/item_tool_type_list" />
+        <!-- tools:listitem will need item_tool_type_list.xml -->
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="?android:attr/listDivider" />
+
+    <!-- Right Pane: Tool Items for Selected Type -->
+    <LinearLayout
+        android:id="@+id/rightPaneContainer"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/textViewSelectedToolTypeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:padding="8dp"
+            android:gravity="center"
+            tools:text="Selected Tool Type Name"
+            android:visibility="gone"/> <!-- Initially hidden or shows placeholder -->
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewToolItems"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            tools:listitem="@layout/item_tool_item_list"/>
+            <!-- tools:listitem will need item_tool_item_list.xml -->
+
+        <Button
+            android:id="@+id/buttonAddNewItemToType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Add New Item(s) to This Type"
+            android:visibility="gone"/> <!-- Initially hidden until a tool type is selected -->
+    </LinearLayout>
+</LinearLayout>

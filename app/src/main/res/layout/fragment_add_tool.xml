@@ -67,25 +67,7 @@
                 android:inputType="numberDecimal"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textFieldLayoutTotalQuantityAdd"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:layout_constraintTop_toBottomOf="@id/textFieldLayoutRentalPrice"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:hint="Total Quantity">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editTextTotalQuantityAdd"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- SwitchMaterial with id switchAvailability removed -->
+        <!-- textFieldLayoutTotalQuantityAdd and editTextTotalQuantityAdd removed -->
 
         <ImageView
             android:id="@+id/imageViewToolPreview"
@@ -96,7 +78,7 @@
             android:src="@android:drawable/ic_menu_gallery"
             android:scaleType="centerCrop"
             android:contentDescription="Tool Image Preview"
-            app:layout_constraintTop_toBottomOf="@id/textFieldLayoutTotalQuantityAdd"
+            app:layout_constraintTop_toBottomOf="@id/textFieldLayoutRentalPrice"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintDimensionRatio="H,16:9"

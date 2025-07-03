@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardElevation="2dp"
+    app:cardUseCompatPadding="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/imageViewItemDraftPhoto"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_placeholder_item" />
+                <!-- Assumes ic_placeholder_item.xml exists -->
+
+            <Button
+                android:id="@+id/buttonChangeItemDraftPhoto"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Set Image" />
+        </LinearLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutItemDraftUnitIdUser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Item User ID (e.g., DRL-001)">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextItemDraftUnitIdUser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutItemDraftSerialNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Serial Number (Optional)">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextItemDraftSerialNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutItemDraftAssetTag"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Asset Tag (Optional)">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextItemDraftAssetTag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Status Spinner -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Status" style="?android:attr/textAppearanceSmall" android:layout_marginTop="8dp"/>
+        <Spinner
+            android:id="@+id/spinnerItemDraftStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"/>
+
+        <!-- Condition Spinner -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Condition" style="?android:attr/textAppearanceSmall" android:layout_marginTop="8dp"/>
+        <Spinner
+            android:id="@+id/spinnerItemDraftCondition"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutItemDraftLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Location (Optional)">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextItemDraftLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutItemDraftPurchasePrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Purchase Price (Optional)"
+            app:prefixText="$"> <!-- Or your currency symbol -->
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextItemDraftPurchasePrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Purchase Date (Button to open DatePickerDialog) -->
+        <Button
+            android:id="@+id/buttonItemDraftPurchaseDate"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Set Purchase Date" />
+        <TextView android:id="@+id/textViewItemDraftPurchaseDate" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="2023-01-15"/>
+
+
+        <!-- Warranty Expiry Date (Button to open DatePickerDialog) -->
+         <Button
+            android:id="@+id/buttonItemDraftWarrantyExpiryDate"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Set Warranty Expiry" />
+        <TextView android:id="@+id/textViewItemDraftWarrantyExpiryDate" android:layout_width="wrap_content" android:layout_height="wrap_content" tools:text="2025-01-15"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutItemDraftNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Notes (Optional)">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextItemDraftNotes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:minLines="2"
+                android:gravity="top"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <ImageButton
+            android:id="@+id/buttonRemoveDraftItemRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_remove_circle_outline"
+            app:tint="?attr/colorError"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Remove this item draft"
+            android:layout_gravity="end"
+            android:padding="8dp"
+            android:layout_marginTop="8dp"/>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

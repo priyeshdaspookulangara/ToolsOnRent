@@ -31,6 +31,7 @@ data class TemporaryToolItem(
     var purchasePrice: Double? = null,
     var warrantyExpiryDate: Date? = null,
     var notes: String? = null,
+    var imageUri: String? = null // New field for item image URI
     // Not including toolTypeId here as it's fixed for the ViewModel instance
 )
 
@@ -158,7 +159,8 @@ class ToolItemSetupViewModel(
                 purchaseDate = draft.purchaseDate,
                 purchasePrice = draft.purchasePrice,
                 warrantyExpiryDate = draft.warrantyExpiryDate,
-                notes = draft.notes?.ifBlank { null }
+                notes = draft.notes?.ifBlank { null },
+                imageUri = draft.imageUri // Persist imageUri
             )
         }
 

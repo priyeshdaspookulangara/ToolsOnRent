@@ -22,9 +22,9 @@ import android.util.Log
 @Database(
     entities = [
         Tool::class, Customer::class, RentalTransaction::class, CustomerPhoneNumber::class,
-        ToolItem::class // Added ToolItem entity
+        ToolItem::class
     ],
-    version = 6, // Incremented from 5 to 6
+    version = 7, // Incremented from 6 to 7
     exportSchema = true
 )
 @TypeConverters(DateConverter::class)
@@ -34,7 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun customerDao(): CustomerDao
     abstract fun rentalTransactionDao(): RentalTransactionDao
     abstract fun customerPhoneNumberDao(): CustomerPhoneNumberDao
-    abstract fun toolItemDao(): ToolItemDao // Added ToolItemDao abstract fun
+    abstract fun toolItemDao(): ToolItemDao
 
     companion object {
         const val DATABASE_NAME = "tools_on_rent_database"
@@ -124,6 +124,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // Migration from version 6 to 7 (New)
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `tool_items` ADD COLUMN `imageUri` TEXT")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -131,7 +138,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     DATABASE_NAME
                 )
-                .addMigrations(MIGRATION_4_5, MIGRATION_5_6) // Add new migration
+                .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7) // Add new migration
                 .build()
                 INSTANCE = instance
                 instance

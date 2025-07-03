@@ -119,12 +119,12 @@ class AddToolFragment : Fragment() {
             val toolName = binding.editTextToolName.text.toString().trim()
             val description = binding.editTextToolDescription.text.toString().trim()
             val rentalPriceStr = binding.editTextRentalPrice.text.toString().trim()
-            val totalQuantityStr = binding.editTextTotalQuantityAdd.text.toString().trim() // New
+            // val totalQuantityStr = binding.editTextTotalQuantityAdd.text.toString().trim() // REMOVED
 
             // Clear previous errors
             binding.textFieldLayoutToolName.error = null
             binding.textFieldLayoutRentalPrice.error = null
-            binding.textFieldLayoutTotalQuantityAdd.error = null // Clear quantity error
+            // binding.textFieldLayoutTotalQuantityAdd.error = null // REMOVED
 
             // Client-side validation (ViewModel also validates)
             var isValid = true
@@ -135,48 +135,91 @@ class AddToolFragment : Fragment() {
             if (rentalPriceDouble == null || rentalPriceDouble <= 0) {
                 binding.textFieldLayoutRentalPrice.error = "Enter a valid positive price"; isValid = false
             }
-            val totalQuantityInt = totalQuantityStr.toIntOrNull()
-            if (totalQuantityInt == null || totalQuantityInt <= 0) {
-                binding.textFieldLayoutTotalQuantityAdd.error = "Total quantity must be a positive number"; isValid = false
-            }
+            // Quantity validation removed
 
 
             if (isValid) {
-                viewModel.addTool(
+                // Call renamed ViewModel method, without quantity
+                viewModel.addToolType(
                     name = toolName,
                     description = description.ifEmpty { null },
-                    priceStr = rentalPriceStr, // ViewModel handles parsing
-                    totalQuantityStr = totalQuantityStr, // Pass as string, VM handles parsing
+                    priceStr = rentalPriceStr,
                     imageUri = selectedInternalImageFileUriString
                 )
             }
         }
     }
 
-    private fun setupImageSelectionClickListeners() { /* ... (existing logic) ... */ }
-    private fun showImageSourceDialog() { /* ... (existing logic) ... */ }
-    private fun updateImagePreview() { /* ... (existing logic) ... */ }
+    private fun setupImageSelectionClickListeners() {
+        binding.buttonSelectImage.setOnClickListener {
+            showImageSourceDialog()
+        }
+    }
+
+    private fun showImageSourceDialog() {
+        val options = arrayOf("Take Photo", "Choose from Gallery", "Cancel")
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Select Image Source")
+            .setItems(options) { dialog, which ->
+                when (which) {
+                    0 -> { // Take Photo
+                        tempCameraImageFile = ImageFileUtil.createTempImageFile(requireContext())
+                        if (tempCameraImageFile != null) {
+                            tempCameraImageUri = ImageFileUtil.getUriForFile(requireContext(), tempCameraImageFile!!)
+                            if (tempCameraImageUri != null) {
+                                takePictureLauncher.launch(tempCameraImageUri)
+                            } else {
+                                Toast.makeText(requireContext(), "Could not prepare for camera.", Toast.LENGTH_SHORT).show()
+                                tempCameraImageFile = null; tempCameraImageUri = null
+                            }
+                        } else {
+                             Toast.makeText(requireContext(), "Could not create temp file for camera.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    1 -> { // Choose from Gallery
+                        pickMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }
+                    2 -> dialog.dismiss() // Cancel
+                }
+            }
+            .show()
+    }
+
+    private fun updateImagePreview() {
+        if (selectedInternalImageFileUriString != null) {
+            Glide.with(this)
+                .load(selectedInternalImageFileUriString)
+                .placeholder(R.drawable.ic_menu_gallery) // Default gallery icon as placeholder
+                .error(R.drawable.ic_broken_image) // Error placeholder
+                .into(binding.imageViewToolPreview)
+        } else {
+            // Load a default placeholder if no image is selected
+            Glide.with(this)
+                .load(R.drawable.ic_menu_gallery) // Your default placeholder
+                .into(binding.imageViewToolPreview)
+        }
+    }
 
     private fun observeSaveResult() {
         viewModel.saveResult.observe(viewLifecycleOwner) { result ->
             result.fold(
-                onSuccess = {
-                    Toast.makeText(requireContext(), "Tool saved successfully!", Toast.LENGTH_SHORT).show()
+                onSuccess = { newToolId -> // ViewModel now returns newToolId
+                    Toast.makeText(requireContext(), "Tool Type saved successfully! ID: $newToolId", Toast.LENGTH_SHORT).show()
                     clearForm()
+                    // TODO: Potentially navigate to item setup screen, passing newToolId
+                    // Example: findNavController().navigate(AddToolFragmentDirections.actionAddToolFragmentToToolItemSetupFragment(newToolId.toInt()))
                 },
                 onFailure = { exception ->
-                    Log.e("AddToolFragment", "Error saving tool", exception)
-                    // Handle specific validation errors from ViewModel
+                    Log.e("AddToolFragment", "Error saving tool type", exception)
                     val message = exception.message ?: "Unknown error."
-                    Toast.makeText(requireContext(), "Error saving tool: $message", Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireContext(), "Error saving tool type: $message", Toast.LENGTH_LONG).show()
                     if (exception is IllegalArgumentException) {
                         if (message.contains("Tool name", ignoreCase = true)) {
                             binding.textFieldLayoutToolName.error = message
                         } else if (message.contains("rental price", ignoreCase = true)) {
                             binding.textFieldLayoutRentalPrice.error = message
-                        } else if (message.contains("Total quantity", ignoreCase = true)) {
-                            binding.textFieldLayoutTotalQuantityAdd.error = message
                         }
+                        // Quantity error check removed
                     }
                 }
             )
@@ -187,8 +230,7 @@ class AddToolFragment : Fragment() {
         binding.editTextToolName.text?.clear()
         binding.editTextToolDescription.text?.clear()
         binding.editTextRentalPrice.text?.clear()
-        binding.editTextTotalQuantityAdd.text?.clear() // Clear new field
-        // binding.switchAvailability.isChecked = true; // REMOVED
+        // binding.editTextTotalQuantityAdd.text?.clear() // REMOVED
 
         selectedInternalImageFileUriString = null
         updateImagePreview()
@@ -196,7 +238,7 @@ class AddToolFragment : Fragment() {
         binding.textFieldLayoutToolName.error = null
         binding.textFieldLayoutToolDescription.error = null
         binding.textFieldLayoutRentalPrice.error = null
-        binding.textFieldLayoutTotalQuantityAdd.error = null // Clear error for new field
+        // binding.textFieldLayoutTotalQuantityAdd.error = null // REMOVED
         binding.editTextToolName.requestFocus()
     }
 

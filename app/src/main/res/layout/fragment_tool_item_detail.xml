@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.toolitem.ToolItemDetailFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarToolItemDetail"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Item Detail"
+            app:navigationIcon="@drawable/ic_arrow_back" />
+            <!-- ic_arrow_back needs to exist -->
+
+        <ImageView
+            android:id="@+id/imageViewItemDetailPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:scaleType="centerCrop"
+            tools:srcCompat="@tools:sample/backgrounds/scenic"
+            android:contentDescription="Tool Item Image"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:id="@+id/textViewItemDetailUnitIdUser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            tools:text="Item ID: DRL-XYZ-001"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/textViewItemDetailToolTypeName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            tools:text="Type: Bosch Cordless Drill"
+            android:layout_marginBottom="16dp"/>
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:rowCount="8"
+            android:useDefaultMargins="true">
+
+            <TextView android:text="Status:" style="@style/TextAppearance.Material3.LabelLarge"/>
+            <TextView android:id="@+id/textViewItemDetailStatus" tools:text="Available" style="@style/TextAppearance.Material3.BodyLarge"/>
+
+            <TextView android:text="Condition:" style="@style/TextAppearance.Material3.LabelLarge"/>
+            <TextView android:id="@+id/textViewItemDetailCondition" tools:text="Good" style="@style/TextAppearance.Material3.BodyLarge"/>
+
+            <TextView android:text="Location:" style="@style/TextAppearance.Material3.LabelLarge"/>
+            <TextView android:id="@+id/textViewItemDetailLocation" tools:text="Warehouse A" style="@style/TextAppearance.Material3.BodyLarge"/>
+
+            <TextView android:text="Serial #:" style="@style/TextAppearance.Material3.LabelLarge"/>
+            <TextView android:id="@+id/textViewItemDetailSerialNumber" tools:text="SN123456789" style="@style/TextAppearance.Material3.BodyLarge"/>
+
+            <TextView android:text="Asset Tag:" style="@style/TextAppearance.Material3.LabelLarge"/>
+            <TextView android:id="@+id/textViewItemDetailAssetTag" tools:text="ASSET-987" style="@style/TextAppearance.Material3.BodyLarge"/>
+
+            <TextView android:text="Purchase Date:" style="@style/TextAppearance.Material3.LabelLarge"/>
+            <TextView android:id="@+id/textViewItemDetailPurchaseDate" tools:text="2023-01-10" style="@style/TextAppearance.Material3.BodyLarge"/>
+
+            <TextView android:text="Purchase Price:" style="@style/TextAppearance.Material3.LabelLarge"/>
+            <TextView android:id="@+id/textViewItemDetailPurchasePrice" tools:text="$150.00" style="@style/TextAppearance.Material3.BodyLarge"/>
+
+            <TextView android:text="Warranty Ends:" style="@style/TextAppearance.Material3.LabelLarge"/>
+            <TextView android:id="@+id/textViewItemDetailWarrantyExpiry" tools:text="2025-01-10" style="@style/TextAppearance.Material3.BodyLarge"/>
+        </GridLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Notes:"
+            style="@style/TextAppearance.Material3.LabelLarge"
+            android:layout_marginTop="16dp"/>
+        <TextView
+            android:id="@+id/textViewItemDetailNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="Item has a slight scratch on the handle but works perfectly fine."
+            style="@style/TextAppearance.Material3.BodyLarge"
+            android:layout_marginBottom="24dp"/>
+
+        <Button
+            android:id="@+id/buttonEditThisItem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Edit This Item" />
+
+        <!-- Add button for "View Rental History for this Item" later if needed -->
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

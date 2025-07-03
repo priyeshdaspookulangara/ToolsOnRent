@@ -45,5 +45,6 @@ data class ToolItem(
     var purchaseDate: Date? = null,
     var purchasePrice: Double? = null,
     var warrantyExpiryDate: Date? = null,
-    var notes: String? = null
+    var notes: String? = null,
+    var imageUri: String? = null // New field for individual item image
 )

@@ -146,12 +146,12 @@ class EditToolFragment : Fragment() {
         binding.editTextToolNameEdit.setText(tool.name)
         binding.editTextToolDescriptionEdit.setText(tool.description ?: "")
         binding.editTextRentalPriceEdit.setText(String.format(Locale.US, "%.2f", tool.rentalPrice))
-        binding.editTextTotalQuantityEdit.setText(tool.totalQuantity.toString()) // Populate total quantity
-        binding.textViewCurrentAvailableQuantityEdit.text = tool.currentAvailableQuantity.toString() // Populate current available
-        // binding.switchAvailabilityEdit.isChecked = tool.isAvailable; // REMOVED
+        // binding.editTextTotalQuantityEdit.setText(tool.totalQuantity.toString()) // REMOVED
+        // binding.textViewCurrentAvailableQuantityEdit.text = tool.currentAvailableQuantity.toString() // REMOVED
 
         selectedInternalImageFileUriString = tool.imageUri
         updateImagePreview()
+        updateRemoveImageButtonVisibility() // Ensure remove button visibility is correct based on loaded image
     }
 
     private fun setupSaveButton() {
@@ -159,31 +159,99 @@ class EditToolFragment : Fragment() {
             val name = binding.editTextToolNameEdit.text.toString().trim()
             val description = binding.editTextToolDescriptionEdit.text.toString().trim()
             val priceStr = binding.editTextRentalPriceEdit.text.toString().trim()
-            val totalQuantityStr = binding.editTextTotalQuantityEdit.text.toString().trim() // ADDED
-            // val isAvailable = binding.switchAvailabilityEdit.isChecked; // REMOVED
+            // val totalQuantityStr = binding.editTextTotalQuantityEdit.text.toString().trim() // REMOVED
 
             clearAllErrors()
             viewModel.updateTool(
-                currentToolId = args.toolId,
+                currentToolId = args.toolId, // This comes from navArgs
                 name = name,
                 description = description,
                 priceStr = priceStr,
-                totalQuantityStr = totalQuantityStr, // ADDED
+                // totalQuantityStr parameter removed from viewmodel call
                 imageUri = selectedInternalImageFileUriString
-                // isAvailable argument removed
             )
         }
     }
 
-    private fun setupImageSelectionButton() { /* ... (existing logic from previous step) ... */ }
-    private fun showImageSourceDialogEdit() { /* ... (existing logic from previous step) ... */ }
-    private fun setupRemoveImageButton() { /* ... (existing logic from previous step) ... */ }
-    private fun showConfirmRemoveImageDialog() { /* ... (existing logic from previous step) ... */ }
-    private fun updateImagePreview() { /* ... (existing logic from previous step) ... */ }
-    private fun updateRemoveImageButtonVisibility() { /* ... (existing logic from previous step) ... */ }
-    private fun setupDeleteButton() { /* ... (existing logic from previous step) ... */ }
-    private fun observeUpdateResult() { /* ... (existing logic from previous step) ... */ }
-    private fun observeDeleteResult() { /* ... (existing logic from previous step) ... */ }
+    // Assuming these methods are correctly implemented as per previous context for image handling
+    private fun setupImageSelectionButton() {
+        binding.buttonSelectImageEdit.setOnClickListener { showImageSourceDialogEdit() }
+        binding.imageViewToolPreviewEdit.setOnClickListener { showImageSourceDialogEdit() } // Allow clicking preview to change
+    }
+
+    private fun showImageSourceDialogEdit() {
+        val options = arrayOf("Take Photo", "Choose from Gallery", "Cancel")
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Select Image Source")
+            .setItems(options) { dialog, which ->
+                when (which) {
+                    0 -> { // Take Photo
+                        tempCameraImageFileEdit = ImageFileUtil.createTempImageFile(requireContext())
+                        if (tempCameraImageFileEdit != null) {
+                            tempCameraImageUriEdit = ImageFileUtil.getUriForFile(requireContext(), tempCameraImageFileEdit!!)
+                            if (tempCameraImageUriEdit != null) {
+                                takePictureLauncherEdit.launch(tempCameraImageUriEdit)
+                            } else {
+                                Toast.makeText(requireContext(), "Could not prepare for camera.", Toast.LENGTH_SHORT).show()
+                                tempCameraImageFileEdit = null; tempCameraImageUriEdit = null
+                            }
+                        } else {
+                            Toast.makeText(requireContext(), "Could not create temp file for camera.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    1 -> { // Choose from Gallery
+                        pickMediaLauncherEdit.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }
+                    2 -> dialog.dismiss() // Cancel
+                }
+            }
+            .show()
+    }
+
+    private fun setupRemoveImageButton() {
+        binding.buttonRemoveImageEdit.setOnClickListener {
+            showConfirmRemoveImageDialog()
+        }
+    }
+
+    private fun showConfirmRemoveImageDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Remove Image")
+            .setMessage("Are you sure you want to remove the current image for this tool type?")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Remove") { _, _ ->
+                val oldImageToDelete = selectedInternalImageFileUriString
+                selectedInternalImageFileUriString = null
+                updateImagePreview()
+                updateRemoveImageButtonVisibility()
+                if (oldImageToDelete != null) {
+                    ImageFileUtil.deleteAppInternalFile(requireContext(), oldImageToDelete)
+                }
+            }
+            .show()
+    }
+
+    private fun updateImagePreview() {
+        if (selectedInternalImageFileUriString != null) {
+            Glide.with(this)
+                .load(selectedInternalImageFileUriString)
+                .placeholder(R.drawable.ic_menu_gallery) // Default gallery icon
+                .error(R.drawable.ic_broken_image) // Error placeholder
+                .into(binding.imageViewToolPreviewEdit)
+        } else {
+            Glide.with(this)
+                .load(R.drawable.ic_menu_gallery) // Default placeholder
+                .into(binding.imageViewToolPreviewEdit)
+        }
+        updateRemoveImageButtonVisibility() // Update visibility whenever preview changes
+    }
+
+    private fun updateRemoveImageButtonVisibility() {
+        binding.buttonRemoveImageEdit.isVisible = selectedInternalImageFileUriString != null
+    }
+
+    // setupDeleteButton, observeUpdateResult, observeDeleteResult should be kept as they are
+    // ... (Rest of the existing methods: setupDeleteButton, observeUpdateResult, observeDeleteResult) ...
 
     private fun handleUpdateError(exception: Throwable) {
         val message = exception.message ?: "Unknown error."
@@ -194,10 +262,8 @@ class EditToolFragment : Fragment() {
                 binding.textFieldLayoutToolNameEdit.error = message
             } else if (message.contains("rental price", ignoreCase = true)) {
                 binding.textFieldLayoutRentalPriceEdit.error = message
-            } else if (message.contains("Total quantity", ignoreCase = true) ||
-                       message.contains("items rented", ignoreCase = true)) { // Check for both quantity error types
-                binding.textFieldLayoutTotalQuantityEdit.error = message
             }
+            // Quantity error check removed
         } else if (exception is IllegalStateException && message.contains("Invalid Tool ID", ignoreCase = true)) {
              Toast.makeText(requireContext(), "Error: Cannot update tool. Invalid ID.", Toast.LENGTH_LONG).show()
         }
@@ -207,7 +273,7 @@ class EditToolFragment : Fragment() {
         binding.textFieldLayoutToolNameEdit.error = null
         binding.textFieldLayoutToolDescriptionEdit.error = null
         binding.textFieldLayoutRentalPriceEdit.error = null
-        binding.textFieldLayoutTotalQuantityEdit.error = null // ADDED
+        // binding.textFieldLayoutTotalQuantityEdit.error = null // REMOVED
     }
 
     override fun onDestroyView() {
