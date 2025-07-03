@@ -63,6 +63,7 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
+    androidTestImplementation("androidx.room:room-testing:$room_version") // Added for migration testing
 
     // Navigation Component
     val nav_version = "2.7.7"

@@ -1,43 +1,45 @@
 package com.example.toolsonrent.ui.customer.edit
 
+package com.example.toolsonrent.ui.customer.edit
+
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.Spinner
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
-import com.example.toolsonrent.R // For R.id.customerListFragment if used with popBackStack
-import com.example.toolsonrent.database.entity.Customer // For populating form
-import com.example.toolsonrent.databinding.FragmentEditCustomerBinding // Generated
-import com.google.android.material.dialog.MaterialAlertDialogBuilder // New import
+// import androidx.navigation.fragment.navArgs // Not strictly needed if ViewModel handles ID from SavedStateHandle
+import com.example.toolsonrent.R
+import com.example.toolsonrent.databinding.FragmentEditCustomerBinding
+import com.example.toolsonrent.databinding.ItemPhoneEntryBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-// No need to import java.util.Date for this fragment's delete logic as it's handled by ViewModel
 
 class EditCustomerFragment : Fragment() {
 
     private var _binding: FragmentEditCustomerBinding? = null
-    // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
 
-    // Use Safe Args delegate to retrieve customerId passed via navigation.
-    private val args: EditCustomerFragmentArgs by navArgs()
+    // private val args: EditCustomerFragmentArgs by navArgs() // ViewModel now gets customerId from SavedStateHandle
     private lateinit var viewModel: EditCustomerViewModel
+    private val phoneTypes = arrayOf("Mobile", "Work", "Home", "Other")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentEditCustomerBinding.inflate(inflater, container, false)
-        // Initialize ViewModel here. ViewModelProvider(this) ensures the ViewModel is scoped
-        // to this Fragment and correctly receives SavedStateHandle with navArgs.
         viewModel = ViewModelProvider(this)[EditCustomerViewModel::class.java]
         return binding.root
     }
@@ -45,59 +47,144 @@ class EditCustomerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        observeCustomerDetails()
+        observeViewModelState() // Populates form fields & phone entries
         setupSaveButton()
-        setupDeleteButton() // Updated to call showConfirmDeleteDialog
+        setupDeleteButton()
+        setupAddPhoneButton()
+        setupReferrerSelection()
+
         observeUpdateResult()
-        observeDeleteResult() // New observer call
+        observeDeleteResult()
     }
 
-    private fun observeCustomerDetails() {
+    private fun setupAddPhoneButton() {
+        binding.buttonAddPhoneNumber.setOnClickListener {
+            viewModel.addPhoneNumberField() // ViewModel updates its list, observer below will refresh UI
+        }
+    }
+
+    private fun observeViewModelState() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.customer.collectLatest { customer ->
-                    customer?.let { populateForm(it) }
+                // Observe individual state flows from ViewModel to populate fields
+                launch { viewModel.name.collectLatest { binding.editTextCustomerNameEdit.setText(it) } }
+                launch { viewModel.email.collectLatest { binding.editTextCustomerEmailEdit.setText(it ?: "") } }
+                launch { viewModel.address.collectLatest { binding.editTextCustomerAddressEdit.setText(it ?: "") } }
+                launch { viewModel.jobField.collectLatest { binding.editTextCustomerJobFieldEdit.setText(it ?: "") } }
+                launch { viewModel.companyName.collectLatest { binding.editTextCustomerCompanyNameEdit.setText(it ?: "") } }
+
+                launch {
+                    viewModel.selectedReferrerId.collectLatest { referrerId ->
+                        val referrer = viewModel.potentialReferrers.value.find { it.id == referrerId }
+                        binding.textViewSelectedReferrer.text = "Selected Referrer: ${referrer?.name ?: "None"}"
+                    }
+                }
+
+                // Observe phone numbers list and update UI
+                launch {
+                    viewModel.phoneNumbers.collectLatest { phoneList ->
+                        binding.phoneNumbersContainer.removeAllViews()
+                        phoneList.forEachIndexed { index, tempPhone ->
+                            val phoneEntryBinding = ItemPhoneEntryBinding.inflate(layoutInflater, binding.phoneNumbersContainer, false)
+                            phoneEntryBinding.editTextPhoneNumberItem.setText(tempPhone.number)
+
+                            val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, phoneTypes)
+                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                            phoneEntryBinding.spinnerPhoneTypeItem.adapter = adapter
+                            val typePosition = phoneTypes.indexOf(tempPhone.type).coerceAtLeast(0)
+                            phoneEntryBinding.spinnerPhoneTypeItem.setSelection(typePosition)
+
+                            phoneEntryBinding.editTextPhoneNumberItem.setOnFocusChangeListener { _, hasFocus ->
+                                if (!hasFocus) {
+                                    viewModel.updatePhoneNumberValue(index, phoneEntryBinding.editTextPhoneNumberItem.text.toString())
+                                }
+                            }
+                            phoneEntryBinding.spinnerPhoneTypeItem.onItemSelectedListener =
+                                object : android.widget.AdapterView.OnItemSelectedListener {
+                                    override fun onItemSelected(p: android.widget.AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                                        viewModel.updatePhoneType(index, phoneTypes[pos])
+                                    }
+                                    override fun onNothingSelected(p: android.widget.AdapterView<*>?) {}
+                                }
+                            phoneEntryBinding.buttonRemovePhoneItem.setOnClickListener {
+                                viewModel.removePhoneNumberField(tempPhone)
+                            }
+                            binding.phoneNumbersContainer.addView(phoneEntryBinding.root)
+                        }
+                    }
                 }
             }
         }
     }
 
-    private fun populateForm(customer: Customer) {
-        binding.editTextCustomerNameEdit.setText(customer.name)
-        binding.editTextCustomerPhoneEdit.setText(customer.phoneNumber)
-        binding.editTextCustomerEmailEdit.setText(customer.email ?: "")
-        binding.editTextCustomerAddressEdit.setText(customer.address ?: "")
-    }
 
     private fun setupSaveButton() {
         binding.buttonSaveChangesCustomer.setOnClickListener {
-            val name = binding.editTextCustomerNameEdit.text.toString().trim()
-            val phone = binding.editTextCustomerPhoneEdit.text.toString().trim()
-            val email = binding.editTextCustomerEmailEdit.text.toString().trim()
-            val address = binding.editTextCustomerAddressEdit.text.toString().trim()
-
-            clearAllErrors()
-            viewModel.updateCustomer(args.customerId, name, phone, email, address)
+            collectDataAndUpdateCustomer()
         }
     }
 
+    private fun collectDataAndUpdateCustomer() {
+        // Update ViewModel states from UI text fields before saving
+        viewModel.name.value = binding.editTextCustomerNameEdit.text.toString().trim()
+        viewModel.email.value = binding.editTextCustomerEmailEdit.text.toString().trim().ifBlank { null }
+        viewModel.address.value = binding.editTextCustomerAddressEdit.text.toString().trim().ifBlank { null }
+        viewModel.jobField.value = binding.editTextCustomerJobFieldEdit.text.toString().trim().ifBlank { null }
+        viewModel.companyName.value = binding.editTextCustomerCompanyNameEdit.text.toString().trim().ifBlank { null }
+
+        // Ensure phone numbers in ViewModel are up-to-date from their EditTexts
+        for (i in 0 until binding.phoneNumbersContainer.childCount) {
+            val phoneEntryView = binding.phoneNumbersContainer.getChildAt(i)
+            val editText = phoneEntryView.findViewById<EditText>(R.id.editTextPhoneNumberItem)
+            if (i < viewModel.phoneNumbers.value.size) {
+                 viewModel.updatePhoneNumberValue(i, editText.text.toString())
+            }
+        }
+        clearAllErrors()
+        viewModel.updateCustomer()
+    }
+
+
     private fun setupDeleteButton() {
         binding.buttonDeleteCustomer.setOnClickListener {
-            showConfirmDeleteDialog() // Call confirmation dialog
+            showConfirmDeleteDialog()
         }
     }
 
     private fun showConfirmDeleteDialog() {
-        val customerName = viewModel.customer.value?.name ?: "this customer"
+        // Use name from ViewModel's state flow
+        val customerName = viewModel.name.value.takeIf { it.isNotBlank() } ?: "this customer"
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Delete Customer")
-            .setMessage("Are you sure you want to delete $customerName? This action cannot be undone. Ensure this customer has no pending rentals or rental history you wish to keep associated, as deletion might fail or lead to data inconsistencies if rentals exist.")
-            .setNegativeButton("Cancel", null) // null listener dismisses the dialog
-            .setPositiveButton("Delete") { _, _ ->
-                viewModel.deleteCustomer() // Call ViewModel to delete
-            }
+            .setMessage("Are you sure you want to delete $customerName? This action cannot be undone.")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Delete") { _, _ -> viewModel.deleteCustomer() }
             .show()
     }
+
+    private fun setupReferrerSelection() {
+        binding.buttonSelectReferrer.setOnClickListener {
+            val referrers = viewModel.potentialReferrers.value
+            if (referrers.isEmpty()) {
+                Toast.makeText(requireContext(), "No potential referrers available.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val referrerNames = referrers.map { it.name }.toTypedArray()
+            AlertDialog.Builder(requireContext())
+                .setTitle("Select Referrer")
+                .setItems(referrerNames) { dialog, which ->
+                    viewModel.selectedReferrerId.value = referrers[which].id
+                    dialog.dismiss()
+                }
+                .setNegativeButton("Clear Referrer") { dialog, _ ->
+                    viewModel.selectedReferrerId.value = null
+                    dialog.dismiss()
+                }
+                .setNeutralButton("Cancel", null)
+                .show()
+        }
+    }
+
 
     private fun observeUpdateResult() {
         viewModel.updateResult.observe(viewLifecycleOwner) { result ->
@@ -108,7 +195,11 @@ class EditCustomerFragment : Fragment() {
                 },
                 onFailure = { exception ->
                     Log.e("EditCustomerFragment", "Error updating customer", exception)
-                    handleUpdateError(exception)
+                    Toast.makeText(requireContext(), "Update failed: ${exception.message}", Toast.LENGTH_LONG).show()
+                     if (binding.editTextCustomerNameEdit.text.isNullOrBlank()) {
+                        binding.textFieldLayoutCustomerNameEdit.error = "Name cannot be empty"
+                    }
+                    // TODO: more specific error handling
                 }
             )
         }
@@ -119,17 +210,15 @@ class EditCustomerFragment : Fragment() {
             result.fold(
                 onSuccess = {
                     Toast.makeText(requireContext(), "Customer deleted successfully.", Toast.LENGTH_SHORT).show()
-                    // Navigate back to the customer list. The list should refresh automatically.
                     findNavController().popBackStack()
                 },
                 onFailure = { exception ->
                     Log.e("EditCustomerFragment", "Error deleting customer", exception)
                     val errorMessage = if (exception.message?.contains("FOREIGN KEY constraint failed", ignoreCase = true) == true) {
-                        "Cannot delete customer. They may have existing rental transactions. Please resolve these first or ensure all rentals are returned and history is no longer critical."
+                        "Cannot delete customer. They may have existing rental transactions."
                     } else {
-                        exception.message ?: "Unknown error deleting customer."
+                        exception.message ?: "Unknown error."
                     }
-                    // Show a more user-friendly dialog for critical errors like FK constraint
                     MaterialAlertDialogBuilder(requireContext())
                         .setTitle("Deletion Failed")
                         .setMessage(errorMessage)
@@ -140,27 +229,12 @@ class EditCustomerFragment : Fragment() {
         }
     }
 
-    private fun handleUpdateError(exception: Throwable) {
-        val message = exception.message ?: "An unknown error occurred."
-        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
-
-        if (exception is IllegalArgumentException && message.contains("Name and Phone")) {
-            if (binding.editTextCustomerNameEdit.text.isNullOrBlank()) {
-                binding.textFieldLayoutCustomerNameEdit.error = "Name cannot be empty"
-            }
-            if (binding.editTextCustomerPhoneEdit.text.isNullOrBlank()) {
-                binding.textFieldLayoutCustomerPhoneEdit.error = "Phone cannot be empty"
-            }
-        } else if (exception is IllegalStateException && message.contains("Invalid Customer ID")) {
-            Log.e("EditCustomerFragment", "Attempted to update with an invalid Customer ID.")
-        }
-    }
-
     private fun clearAllErrors(){
         binding.textFieldLayoutCustomerNameEdit.error = null
-        binding.textFieldLayoutCustomerPhoneEdit.error = null
         binding.textFieldLayoutCustomerEmailEdit.error = null
         binding.textFieldLayoutCustomerAddressEdit.error = null
+        binding.textFieldLayoutCustomerJobFieldEdit.error = null // Added
+        binding.textFieldLayoutCustomerCompanyNameEdit.error = null // Added
     }
 
     override fun onDestroyView() {
