@@ -9,9 +9,8 @@ data class Tool(
     val id: Int = 0,
     val name: String,
     val description: String?,
-    val rentalPrice: Double,
-    // val isAvailable: Boolean = true, // REMOVED as per plan
-    var totalQuantity: Int,             // ADDED - Made var assuming it can be edited
-    var currentAvailableQuantity: Int,  // ADDED - Made var as it changes with rentals/returns
-    val imageUri: String?
+    val rentalPrice: Double, // Default rental price for items of this type
+    // totalQuantity and currentAvailableQuantity are removed.
+    // This information will now be derived from querying ToolItems.
+    val imageUri: String? // Represents the generic image for this tool type
 )

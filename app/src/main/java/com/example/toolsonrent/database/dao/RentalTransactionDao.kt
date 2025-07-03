@@ -27,8 +27,18 @@ interface RentalTransactionDao {
     @Query("SELECT * FROM rental_transactions ORDER BY rentalDate DESC")
     fun getAllTransactions(): Flow<List<RentalTransaction>>
 
-    @Query("SELECT * FROM rental_transactions WHERE toolId = :toolId ORDER BY rentalDate DESC")
-    fun getTransactionsForTool(toolId: Int): Flow<List<RentalTransaction>>
+    @Query("SELECT * FROM rental_transactions WHERE toolItemId = :toolItemId ORDER BY rentalDate DESC")
+    fun getTransactionsForToolItem(toolItemId: Int): Flow<List<RentalTransaction>>
+
+    // To get transactions for a specific Tool Type (template), a JOIN would be needed.
+    // Example:
+    // @Query("""
+    //    SELECT rt.* FROM rental_transactions rt
+    //    INNER JOIN tool_items ti ON rt.toolItemId = ti.id
+    //    WHERE ti.toolTypeId = :toolTypeId ORDER BY rt.rentalDate DESC
+    // """)
+    // fun getTransactionsForToolType(toolTypeId: Int): Flow<List<RentalTransaction>>
+    // For now, this more complex query is omitted, can be added if specifically needed.
 
     @Query("SELECT * FROM rental_transactions WHERE customerId = :customerId ORDER BY rentalDate DESC")
     fun getTransactionsForCustomer(customerId: Int): Flow<List<RentalTransaction>>

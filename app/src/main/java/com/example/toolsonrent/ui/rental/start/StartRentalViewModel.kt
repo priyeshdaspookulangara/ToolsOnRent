@@ -19,7 +19,8 @@ import java.util.Date
 class StartRentalViewModel(application: Application) : AndroidViewModel(application) {
 
     private val customerDao = AppDatabase.getInstance(application).customerDao()
-    private val toolDao = AppDatabase.getInstance(application).toolDao()
+    private val toolDao = AppDatabase.getInstance(application).toolDao() // For Tool (type) info
+    private val toolItemDao = AppDatabase.getInstance(application).toolItemDao() // For ToolItem info
     private val rentalTransactionDao = AppDatabase.getInstance(application).rentalTransactionDao()
 
     val allCustomers: StateFlow<List<Customer>> = customerDao.getAllCustomers()
@@ -29,20 +30,42 @@ class StartRentalViewModel(application: Application) : AndroidViewModel(applicat
             initialValue = emptyList()
         )
 
-    // availableTools now correctly filters by currentAvailableQuantity > 0 in ToolDao
-    val availableTools: StateFlow<List<Tool>> = toolDao.getAvailableTools()
+    // Renamed: User first selects a tool type (template)
+    val allToolTypes: StateFlow<List<Tool>> = toolDao.getAllTools()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = emptyList()
         )
 
-    private val _saveRentalResult = MutableLiveData<Result<Unit>>()
-    val saveRentalResult: LiveData<Result<Unit>> = _saveRentalResult
+    // Holds the ID of the currently selected tool type by the user in the UI
+    val selectedToolTypeId = MutableStateFlow<Int?>(null)
+
+    // Holds the list of available items for the selected tool type
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val availableToolItems: StateFlow<List<com.example.toolsonrent.database.entity.ToolItem>> = selectedToolTypeId.flatMapLatest { typeId ->
+        if (typeId != null && typeId != 0) {
+            toolItemDao.getAvailableItemsByToolType(typeId)
+        } else {
+            flowOf(emptyList()) // No type selected or invalid ID, so no items
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = emptyList()
+    )
+
+    private val _saveRentalResult = MutableLiveData<Result<Long>>() // Return transaction ID
+    val saveRentalResult: LiveData<Result<Long>> = _saveRentalResult
+
+    // Status constant - consider moving to a shared constants file or enum
+    private val STATUS_ON_RENT = "On Rent"
+    private val STATUS_AVAILABLE = "Available"
+
 
     fun confirmRental(
         selectedCustomer: Customer?,
-        selectedTool: Tool?,
+        selectedToolItem: com.example.toolsonrent.database.entity.ToolItem?, // Changed from Tool to ToolItem
         rentalDate: Date?,
         dueDate: Date?,
         notes: String?
@@ -51,8 +74,12 @@ class StartRentalViewModel(application: Application) : AndroidViewModel(applicat
             _saveRentalResult.postValue(Result.failure(IllegalArgumentException("Please select a customer.")))
             return
         }
-        if (selectedTool == null) {
-            _saveRentalResult.postValue(Result.failure(IllegalArgumentException("Please select a tool.")))
+        if (selectedToolItem == null) {
+            _saveRentalResult.postValue(Result.failure(IllegalArgumentException("Please select a specific tool item.")))
+            return
+        }
+        if (selectedToolItem.status != STATUS_AVAILABLE) {
+             _saveRentalResult.postValue(Result.failure(IllegalStateException("Selected item '${selectedToolItem.unitIdUser}' is not available.")))
             return
         }
         if (rentalDate == null) {
@@ -68,50 +95,39 @@ class StartRentalViewModel(application: Application) : AndroidViewModel(applicat
             return
         }
 
-        // Updated availability check based on quantity
-        if (selectedTool.currentAvailableQuantity <= 0) {
-            Log.w("StartRentalViewModel", "Attempted to rent tool with zero available quantity: ${selectedTool.name} (ID: ${selectedTool.id})")
-            _saveRentalResult.postValue(Result.failure(IllegalStateException("Selected tool (${selectedTool.name}) has no available quantity. Please select another tool.")))
-            return
-        }
-
-        val transaction = RentalTransaction(
-            toolId = selectedTool.id,
-            customerId = selectedCustomer.id,
-            rentalDate = rentalDate,
-            dueDate = dueDate,
-            rentalPricePerDay = selectedTool.rentalPrice,
-            returnDate = null,
-            notes = notes?.ifBlank { null }
-        )
-
         viewModelScope.launch {
             try {
-                // Insert the rental transaction first
-                val transactionId = rentalTransactionDao.insert(transaction)
+                // Fetch the tool type to get the default rental price
+                val toolType = toolDao.getToolById(selectedToolItem.toolTypeId).firstOrNull()
+                if (toolType == null) {
+                    _saveRentalResult.postValue(Result.failure(IllegalStateException("Could not find tool type details for the selected item.")))
+                    return@launch
+                }
 
-                if (transactionId > 0) { // Check if insert was successful (rowId > 0)
-                    // Then, attempt to decrement the tool's available quantity
-                    val rowsUpdated = toolDao.decrementAvailableQuantity(selectedTool.id, 1)
-                    if (rowsUpdated > 0) { // Check if decrement was successful (at least one row updated)
-                        _saveRentalResult.postValue(Result.success(Unit))
-                    } else {
-                        // Decrement failed (e.g., quantity became 0 concurrently by another operation)
-                        // This indicates a potential data inconsistency or race condition.
-                        // Ideal: Rollback the inserted transaction.
-                        Log.e("StartRentalVM", "Inserted transaction $transactionId but failed to decrement quantity for tool ${selectedTool.id}. Manual rollback might be needed or use @Transaction.")
-                        _saveRentalResult.postValue(Result.failure(
-                            IllegalStateException("Tool quantity became unavailable during the transaction process. Please try again or select a different tool.")
-                        ))
-                        // TODO: Implement actual rollback for transactionId if decrement fails after insert.
-                        // This would typically involve a @Transaction annotated method in a DAO that calls both insert and decrement.
-                    }
+                val transaction = RentalTransaction(
+                    toolItemId = selectedToolItem.id, // Use ToolItem's ID
+                    customerId = selectedCustomer.id,
+                    rentalDate = rentalDate,
+                    dueDate = dueDate,
+                    rentalPricePerDay = toolType.rentalPrice, // Price from Tool Type
+                    returnDate = null,
+                    notes = notes?.ifBlank { null }
+                )
+
+                // Ideally, this block (insert transaction + update item status) should be in a single DB transaction.
+                // This can be achieved by creating a @Transaction annotated method in a DAO that calls both operations.
+                // For simplicity here, we do them sequentially.
+
+                val transactionId = rentalTransactionDao.insert(transaction)
+                if (transactionId > 0) {
+                    toolItemDao.updateItemStatus(selectedToolItem.id, STATUS_ON_RENT)
+                    _saveRentalResult.postValue(Result.success(transactionId))
                 } else {
-                    Log.e("StartRentalVM", "Failed to insert rental transaction for tool ${selectedTool.id}.")
+                    Log.e("StartRentalVM", "Failed to insert rental transaction for item ${selectedToolItem.id}.")
                     _saveRentalResult.postValue(Result.failure(Exception("Failed to record rental transaction.")))
                 }
             } catch (e: Exception) {
-                Log.e("StartRentalViewModel", "Error confirming rental for tool ${selectedTool.id}", e)
+                Log.e("StartRentalViewModel", "Error confirming rental for item ${selectedToolItem?.id}", e)
                 _saveRentalResult.postValue(Result.failure(e))
             }
         }

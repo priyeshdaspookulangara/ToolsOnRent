@@ -20,27 +20,46 @@ import java.util.Date // For returnDate parameter and transaction.copy
 class ActiveRentalsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val transactionDao = AppDatabase.getInstance(application).rentalTransactionDao()
-    private val toolDao = AppDatabase.getInstance(application).toolDao()
+    private val toolDao = AppDatabase.getInstance(application).toolDao() // To get tool type name
+    private val toolItemDao = AppDatabase.getInstance(application).toolItemDao() // To update item status
     private val customerDao = AppDatabase.getInstance(application).customerDao()
+
+    // Define status constants (could be in a shared file/enum)
+    object ToolItemStatus {
+        const val AVAILABLE = "Available"
+        const val ON_RENT = "On Rent"
+        const val MAINTENANCE = "Maintenance"
+        const val DAMAGED = "Damaged"
+        // Add other statuses from your list: Missing, Retired/Scrapped, Reserved
+    }
 
     val activeRentalItems: StateFlow<List<ActiveRentalInfo>> =
         combine(
-            transactionDao.getActiveRentals(),
-            toolDao.getAllTools(),
-            customerDao.getAllCustomers()
-        ) { activeTransactions, tools, customers ->
-            val toolsMap = tools.associateBy { it.id }
+            transactionDao.getActiveRentals(), // Flow<List<RentalTransaction>>
+            customerDao.getAllCustomers(),     // Flow<List<Customer>>
+            toolItemDao.getAllToolItems(),     // Changed from getItemsByToolType(-1)
+            toolDao.getAllTools()              // To map toolTypeId to toolTypeName
+        ) { activeTransactions, customers, allToolItems, allToolTypes ->
             val customersMap = customers.associateBy { it.id }
+            val toolItemsMap = allToolItems.associateBy { it.id }
+            val toolTypesMap = allToolTypes.associateBy { it.id }
 
             activeTransactions.mapNotNull { transaction ->
-                val tool = toolsMap[transaction.toolId]
                 val customer = customersMap[transaction.customerId]
+                val toolItem = toolItemsMap[transaction.toolItemId] // transaction now has toolItemId
 
-                if (tool != null && customer != null) {
+                if (toolItem == null) {
+                     Log.w("ActiveRentalsVM", "Data inconsistency: Missing tool item (ID: ${transaction.toolItemId}) for transaction ID: ${transaction.id}")
+                     return@mapNotNull null
+                }
+                val toolType = toolTypesMap[toolItem.toolTypeId]
+
+                if (customer != null && toolType != null) {
                     ActiveRentalInfo(
                         transactionId = transaction.id,
-                        toolId = transaction.toolId,
-                        toolName = tool.name,
+                        toolItemId = transaction.toolItemId,
+                        unitIdUser = toolItem.unitIdUser,
+                        toolTypeName = toolType.name,
                         customerName = customer.name,
                         rentalDate = transaction.rentalDate,
                         dueDate = transaction.dueDate
@@ -48,61 +67,56 @@ class ActiveRentalsViewModel(application: Application) : AndroidViewModel(applic
                 } else {
                     Log.w(
                         "ActiveRentalsVM",
-                        "Data inconsistency: Missing tool (ID: ${transaction.toolId}) or " +
-                        "customer (ID: ${transaction.customerId}) for active transaction ID: ${transaction.id}"
+                        "Data inconsistency: Missing customer (ID: ${transaction.customerId}) or " +
+                        "tool type (ID: ${toolItem.toolTypeId}) for item ID ${toolItem.id}, transaction ID: ${transaction.id}"
                     )
                     null
                 }
             }
         }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
+            started = SharingStarted.WhileSubscribed(5000L), // Consider a longer timeout if DB operations are slow
             initialValue = emptyList()
         )
 
     private val _rentalCompletionResult = MutableLiveData<Result<Unit>>()
     val rentalCompletionResult: LiveData<Result<Unit>> = _rentalCompletionResult
 
-    fun completeRental(transactionId: Int, toolId: Int, returnDate: Date) {
+    fun returnTool(
+        transactionId: Int,
+        toolItemId: Int,
+        returnDate: Date,
+        newItemStatus: String = ToolItemStatus.AVAILABLE, // Default to Available on return
+        newItemCondition: String? = null // Optional: update condition on return
+    ) {
         viewModelScope.launch {
             try {
-                // Note: These operations should ideally be in a single database transaction
-                // for atomicity (e.g., using Room's @Transaction on a DAO method or
-                // AppDatabase.withTransaction { ... }).
-
-                // 1. Fetch the transaction
+                // These operations should ideally be in a single database transaction.
                 val transaction = transactionDao.getTransactionById(transactionId).firstOrNull()
-                                  ?: throw IllegalStateException("Transaction with ID $transactionId not found.")
+                    ?: throw IllegalStateException("Transaction with ID $transactionId not found.")
 
-                // 2. Check if already returned
                 if (transaction.returnDate != null) {
-                    // Post failure if already completed, but perhaps log it differently or handle as idempotent success
-                    _rentalCompletionResult.postValue(Result.failure(IllegalStateException("Rental for transaction ID $transactionId has already been completed.")))
+                    _rentalCompletionResult.postValue(Result.failure(IllegalStateException("Rental $transactionId already completed.")))
                     return@launch
                 }
 
-                // 3. Update the transaction with the return date
                 val updatedTransaction = transaction.copy(returnDate = returnDate)
-                rentalTransactionDao.update(updatedTransaction)
+                transactionDao.update(updatedTransaction)
 
-                // 4. Attempt to increment the tool's available quantity
-                val rowsUpdated = toolDao.incrementAvailableQuantity(toolId, 1)
+                toolItemDao.updateItemStatus(toolItemId, newItemStatus)
 
-                if (rowsUpdated > 0) {
-                    _rentalCompletionResult.postValue(Result.success(Unit))
-                } else {
-                    // Increment failed (e.g., currentAvailableQuantity + 1 would exceed totalQuantity).
-                    // This indicates a potential data inconsistency (e.g., tool was already returned via another process,
-                    // or totalQuantity is misconfigured).
-                    // For the user, the rental is marked as complete, so this is primarily a data integrity issue to log.
-                    Log.w("ActiveRentalsVM", "Transaction $transactionId completed, but failed to increment quantity for tool $toolId (already at max or data issue).")
-                    // We still consider the operation a success from the user's perspective of returning the tool.
-                    _rentalCompletionResult.postValue(Result.success(Unit))
-                    // TODO: Consider a more specific Result type or logging channel for admin review of such inconsistencies.
+                if (newItemCondition != null) {
+                    val toolItem = toolItemDao.getItemById(toolItemId).firstOrNull()
+                    if (toolItem != null) {
+                        toolItemDao.update(toolItem.copy(condition = newItemCondition))
+                    } else {
+                        Log.w("ActiveRentalsVM", "Could not find ToolItem $toolItemId to update condition.")
+                    }
                 }
+                _rentalCompletionResult.postValue(Result.success(Unit))
 
             } catch (e: Exception) {
-                Log.e("ActiveRentalsVM", "Error completing rental for transaction ID $transactionId, Tool ID $toolId", e)
+                Log.e("ActiveRentalsVM", "Error completing rental for transaction $transactionId, Item ID $toolItemId", e)
                 _rentalCompletionResult.postValue(Result.failure(e))
             }
         }

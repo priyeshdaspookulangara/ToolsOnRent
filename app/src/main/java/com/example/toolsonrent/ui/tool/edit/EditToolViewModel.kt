@@ -47,12 +47,11 @@ class EditToolViewModel(
         name: String,
         description: String?,
         priceStr: String,
-        totalQuantityStr: String, // New parameter, replaced isAvailable
+        // totalQuantityStr: String, // Removed
         imageUri: String?
     ) {
         val price = priceStr.toDoubleOrNull()
-        val newTotalQuantity = totalQuantityStr.toIntOrNull()
-        val oldTool = tool.value // Get the current state of the tool being edited for quantity calculations
+        // val oldTool = tool.value // Not needed for quantity anymore
 
         // Validations
         if (name.isBlank()) {
@@ -63,44 +62,26 @@ class EditToolViewModel(
             _updateResult.postValue(Result.failure(IllegalArgumentException("Enter a valid positive rental price.")))
             return
         }
-        // Allow 0 for total quantity (e.g. tool is being phased out but existing rentals need to be managed)
-        if (newTotalQuantity == null || newTotalQuantity < 0) {
-            _updateResult.postValue(Result.failure(IllegalArgumentException("Total quantity must be a non-negative number.")))
-            return
-        }
+        // Quantity related validations removed
+
         if (currentToolId == 0) {
              _updateResult.postValue(Result.failure(IllegalStateException("Invalid Tool ID for update.")))
             return
         }
-        if (oldTool == null) {
-            // This should ideally not happen if the UI is populated after 'tool' StateFlow emits a non-null value.
-            _updateResult.postValue(Result.failure(IllegalStateException("Original tool data not loaded. Cannot process update.")))
-            return
-        }
+        // if (oldTool == null) { // This check might still be relevant if other fields from oldTool were used
+        //     _updateResult.postValue(Result.failure(IllegalStateException("Original tool data not loaded. Cannot process update.")))
+        //     return
+        // }
 
-        // Calculate the number of items currently rented out
-        // This value should remain constant during this update operation.
-        val itemsRented = oldTool.totalQuantity - oldTool.currentAvailableQuantity
-
-        // New total quantity cannot be less than the number of items currently rented.
-        if (newTotalQuantity < itemsRented) {
-            _updateResult.postValue(Result.failure(IllegalArgumentException(
-                "Total quantity ($newTotalQuantity) cannot be less than the number of items currently rented ($itemsRented)."
-            )))
-            return
-        }
-
-        // Calculate the new currentAvailableQuantity based on the new total and fixed rented items.
-        val newCurrentAvailableQuantity = newTotalQuantity - itemsRented
+        // Quantity calculation logic removed
 
         val toolToSave = Tool(
             id = currentToolId,
             name = name,
             description = description?.ifBlank { null },
             rentalPrice = price,
-            totalQuantity = newTotalQuantity, // Use new total quantity
-            currentAvailableQuantity = newCurrentAvailableQuantity, // Use calculated new available quantity
-            imageUri = imageUri // Use the imageUri passed from the fragment (could be old or new)
+            // totalQuantity and currentAvailableQuantity removed
+            imageUri = imageUri
         )
 
         viewModelScope.launch {
