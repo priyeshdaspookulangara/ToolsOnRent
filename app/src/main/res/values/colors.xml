@@ -9,4 +9,7 @@
     <!-- KPI Card Colors -->
     <color name="kpi_due_background_pale_red">#FFCDD2</color> <!-- Pale Red (Red 100) -->
     <color name="kpi_info_background_pale_blue">#BBDEFB</color> <!-- Pale Blue (Blue 100) -->
+    <color name="kpi_success_background_pale_green">#C8E6C9</color> <!-- Pale Green (Green 100) -->
+    <color name="kpi_warning_background_pale_orange">#FFECB3</color> <!-- Pale Orange/Amber (Amber 100) -->
+    <color name="kpi_danger_background_pale_red">#FFCDD2</color> <!-- Pale Red (Red 100, same as due) -->
 </resources>
