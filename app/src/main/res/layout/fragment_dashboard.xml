@@ -23,11 +23,11 @@
             android:layout_marginBottom="16dp"/> <!-- Increased bottom margin -->
 
         <LinearLayout
-            android:id="@+id/linearLayoutKpiCards"
+            android:id="@+id/linearLayoutKpiCardsRow1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="8dp"
             android:baselineAligned="false">
 
             <include
@@ -35,127 +35,101 @@
                 layout="@layout/kpi_card_item"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                />
+                android:layout_weight="1" />
 
             <include
                 android:id="@+id/includeTotalTransactionsCard"
                 layout="@layout/kpi_card_item"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                />
+                android:layout_weight="1" />
         </LinearLayout>
 
-        <!-- Available Tools Metric -->
         <LinearLayout
+            android:id="@+id/linearLayoutKpiCardsRow2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-            <TextView
-                android:id="@+id/textViewAvailableCountLabel"
+            android:layout_marginBottom="8dp"
+            android:baselineAligned="false">
+
+            <include
+                android:id="@+id/includeAvailableToolsCard"
+                layout="@layout/kpi_card_item"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Tools Available:"
-                android:textAppearance="?attr/textAppearanceBody1"/>
-            <TextView
-                android:id="@+id/textViewAvailableCountValue"
-                android:layout_width="wrap_content"
+                android:layout_weight="1" />
+
+            <include
+                android:id="@+id/includeRentedToolsCard"
+                layout="@layout/kpi_card_item"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBody1"
-                android:textStyle="bold"
-                tools:text="0"/>
+                android:layout_weight="1" />
         </LinearLayout>
 
-        <!-- Rented Tools Metric -->
         <LinearLayout
+            android:id="@+id/linearLayoutKpiCardsRow3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-            <TextView
-                android:id="@+id/textViewRentedCountLabel"
+            android:layout_marginBottom="8dp"
+            android:baselineAligned="false">
+
+            <include
+                android:id="@+id/includeOverdueToolsCard"
+                layout="@layout/kpi_card_item"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Tools Rented:"
-                android:textAppearance="?attr/textAppearanceBody1"/>
-            <TextView
-                android:id="@+id/textViewRentedCountValue"
-                android:layout_width="wrap_content"
+                android:layout_weight="1" />
+
+            <include
+                android:id="@+id/includeDailyProfitCard"
+                layout="@layout/kpi_card_item"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBody1"
-                android:textStyle="bold"
-                tools:text="0"/>
+                android:layout_weight="1" />
         </LinearLayout>
 
-        <!-- Overdue Tools Metric (Placeholder) -->
         <LinearLayout
+            android:id="@+id/linearLayoutKpiCardsRow4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="24dp"> <!-- Increased bottom margin for section end -->
-            <TextView
-                android:id="@+id/textViewOverdueCountLabel"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false">
+
+            <include
+                android:id="@+id/includeMonthlyProfitCard"
+                layout="@layout/kpi_card_item"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Tools Overdue:"
-                android:textAppearance="?attr/textAppearanceBody1"/>
-            <TextView
-                android:id="@+id/textViewOverdueCountValue"
-                android:layout_width="wrap_content"
+                android:layout_weight="1" />
+
+            <!-- Add a spacer view to keep the single card to the left, or add another card here in future -->
+            <View
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBody1"
-                android:textStyle="bold"
-                tools:text="0"/>
+                android:layout_weight="1" />
+
         </LinearLayout>
 
-        <!-- Daily Profit Metric -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Upcoming Returns / Calendar Section -->
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-            <TextView
-                android:id="@+id/textViewDailyProfitLabel"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="Today's Profit:"
-                android:textAppearance="?attr/textAppearanceBody1"/>
-            <TextView
-                android:id="@+id/textViewDailyProfitValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBody1"
-                android:textStyle="bold"
-                tools:text="$0.00"/>
-        </LinearLayout>
+            android:text="Upcoming Returns"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:layout_marginBottom="8dp"/>
 
-        <!-- Monthly Profit Metric -->
-        <LinearLayout
+        <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+            android:id="@+id/materialCalendarDashboard"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="24dp"> <!-- Increased bottom margin for section end -->
-            <TextView
-                android:id="@+id/textViewMonthlyProfitLabel"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="This Month's Profit:"
-                android:textAppearance="?attr/textAppearanceBody1"/>
-            <TextView
-                android:id="@+id/textViewMonthlyProfitValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBody1"
-                android:textStyle="bold"
-                tools:text="$0.00"/>
-        </LinearLayout>
+            android:layout_height="350dp"
+            app:mcv_showOtherDates="all"
+            app:mcv_selectionMode="single"
+            android:layout_marginBottom="24dp"/> <!-- Increased margin for section end -->
+
 
         <!-- Quick Access Section -->
         <TextView
@@ -251,22 +225,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Start New Rental"
-            android:layout_marginBottom="24dp"/> <!-- Increased margin for section end -->
-
-        <!-- Upcoming Returns / Calendar Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Upcoming Returns"
-            android:textAppearance="?attr/textAppearanceHeadline5"
-            android:layout_marginBottom="8dp"/>
-
-        <com.prolificinteractive.materialcalendarview.MaterialCalendarView
-            android:id="@+id/materialCalendarDashboard"
-            android:layout_width="match_parent"
-            android:layout_height="350dp"
-            app:mcv_showOtherDates="all"
-            app:mcv_selectionMode="single"
             android:layout_marginBottom="16dp"/>
 
     </LinearLayout>

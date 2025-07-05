@@ -8,4 +8,15 @@
     <string name="kpi_nav_error_due_returns_report">Due Returns Report</string>
     <string name="kpi_label_completed_txns">Completed Txns</string>
     <string name="kpi_nav_error_total_txns_report">Total Transactions Report</string>
+
+    <string name="kpi_label_available_tools">Available Tools</string>
+    <string name="kpi_nav_error_available_tools">Tool List</string>
+    <string name="kpi_label_rented_tools">Rented Tools</string>
+    <string name="kpi_nav_error_rented_tools">Active Rentals</string>
+    <string name="kpi_label_overdue_tools">Overdue Tools</string>
+    <string name="kpi_nav_error_overdue_tools">Overdue Report</string>
+    <string name="kpi_label_daily_profit">Today\'s Profit</string>
+    <string name="kpi_nav_error_daily_profit">Profit/Loss Report</string>
+    <string name="kpi_label_monthly_profit">Monthly Profit</string>
+    <string name="kpi_nav_error_monthly_profit">Profit/Loss Report</string>
 </resources>

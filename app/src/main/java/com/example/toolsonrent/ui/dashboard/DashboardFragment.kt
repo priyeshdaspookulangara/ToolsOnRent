@@ -139,17 +139,16 @@ class DashboardFragment : Fragment() {
                 }
             }
         }
-        binding.includeDueToolReturnsCard.textViewKpiLabel.text = getString(R.string.kpi_label_due_returns) // "Due Returns"
+        binding.includeDueToolReturnsCard.textViewKpiLabel.text = getString(R.string.kpi_label_due_returns)
         binding.includeDueToolReturnsCard.imageViewKpiIcon.setImageResource(R.drawable.ic_kpi_due_alert_24)
         binding.includeDueToolReturnsCard.kpiCardViewRoot.setCardBackgroundColor(
             ContextCompat.getColor(requireContext(), R.color.kpi_due_background_pale_red)
         )
         binding.includeDueToolReturnsCard.kpiCardViewRoot.setOnClickListener {
             try {
-                // Assuming action_dashboardFragment_to_overdueRentalsReportFragment is the correct, existing ID
                 findNavController().navigate(R.id.action_dashboardFragment_to_overdueRentalsReportFragment)
-            } catch (e: Exception) { // Catch generic Exception as Nav errors can be various
-                handleNavError(getString(R.string.kpi_nav_error_due_returns_report), e as IllegalArgumentException) // Cast for existing handler
+            } catch (e: Exception) {
+                handleNavError(getString(R.string.kpi_nav_error_due_returns_report), e as IllegalArgumentException)
             }
         }
 
@@ -161,31 +160,134 @@ class DashboardFragment : Fragment() {
                 }
             }
         }
-        binding.includeTotalTransactionsCard.textViewKpiLabel.text = getString(R.string.kpi_label_completed_txns) // "Completed Txns"
+        binding.includeTotalTransactionsCard.textViewKpiLabel.text = getString(R.string.kpi_label_completed_txns)
         binding.includeTotalTransactionsCard.imageViewKpiIcon.setImageResource(R.drawable.ic_kpi_transactions_24)
         binding.includeTotalTransactionsCard.kpiCardViewRoot.setCardBackgroundColor(
             ContextCompat.getColor(requireContext(), R.color.kpi_info_background_pale_blue)
         )
         binding.includeTotalTransactionsCard.kpiCardViewRoot.setOnClickListener {
             try {
-                // This action (and destination) R.id.action_nav_dashboard_to_allCompletedTransactionsFragment will be created in a subsequent step
                 findNavController().navigate(R.id.action_nav_dashboard_to_allCompletedTransactionsFragment)
             } catch (e: Exception) {
-                 handleNavError(getString(R.string.kpi_nav_error_total_txns_report), e as IllegalArgumentException) // Cast for existing handler
+                 handleNavError(getString(R.string.kpi_nav_error_total_txns_report), e as IllegalArgumentException)
+            }
+        }
+
+        // Available Tools Card
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.availableToolsCount.collectLatest { count ->
+                    binding.includeAvailableToolsCard.textViewKpiCount.text = count.toString()
+                }
+            }
+        }
+        binding.includeAvailableToolsCard.textViewKpiLabel.text = getString(R.string.kpi_label_available_tools)
+        binding.includeAvailableToolsCard.imageViewKpiIcon.setImageResource(R.drawable.ic_kpi_available_tools_24) // Placeholder - define this
+        binding.includeAvailableToolsCard.kpiCardViewRoot.setCardBackgroundColor(
+            ContextCompat.getColor(requireContext(), R.color.kpi_success_background_pale_green) // Placeholder - define this
+        )
+        binding.includeAvailableToolsCard.kpiCardViewRoot.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_toolListFragment)
+            } catch (e: Exception) {
+                handleNavError(getString(R.string.kpi_nav_error_available_tools), e as IllegalArgumentException) // Placeholder
+            }
+        }
+
+        // Rented Tools Card
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.rentedToolsCount.collectLatest { count ->
+                    binding.includeRentedToolsCard.textViewKpiCount.text = count.toString()
+                }
+            }
+        }
+        binding.includeRentedToolsCard.textViewKpiLabel.text = getString(R.string.kpi_label_rented_tools)
+        binding.includeRentedToolsCard.imageViewKpiIcon.setImageResource(R.drawable.ic_kpi_rented_tools_24) // Placeholder - define this
+        binding.includeRentedToolsCard.kpiCardViewRoot.setCardBackgroundColor(
+            ContextCompat.getColor(requireContext(), R.color.kpi_warning_background_pale_orange) // Placeholder - define this
+        )
+         binding.includeRentedToolsCard.kpiCardViewRoot.setOnClickListener {
+            try {
+                // Consider navigating to a screen showing only rented tools, or active rentals.
+                // For now, let's use active rentals as it's closely related.
+                findNavController().navigate(R.id.action_dashboardFragment_to_activeRentalsFragment)
+            } catch (e: Exception) {
+                handleNavError(getString(R.string.kpi_nav_error_rented_tools), e as IllegalArgumentException) // Placeholder
+            }
+        }
+
+        // Overdue Tools Card
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.overdueToolsCount.collectLatest { count ->
+                    binding.includeOverdueToolsCard.textViewKpiCount.text = count.toString()
+                }
+            }
+        }
+        binding.includeOverdueToolsCard.textViewKpiLabel.text = getString(R.string.kpi_label_overdue_tools)
+        binding.includeOverdueToolsCard.imageViewKpiIcon.setImageResource(R.drawable.ic_kpi_overdue_tools_24) // Placeholder - define this
+        binding.includeOverdueToolsCard.kpiCardViewRoot.setCardBackgroundColor(
+            ContextCompat.getColor(requireContext(), R.color.kpi_danger_background_pale_red) // Placeholder - define this
+        )
+        binding.includeOverdueToolsCard.kpiCardViewRoot.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_overdueRentalsReportFragment)
+            } catch (e: Exception) {
+                handleNavError(getString(R.string.kpi_nav_error_overdue_tools), e as IllegalArgumentException) // Placeholder
+            }
+        }
+
+        // Daily Profit Card
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.dailyProfit.collectLatest { profit ->
+                    binding.includeDailyProfitCard.textViewKpiCount.text = currencyFormat.format(profit)
+                }
+            }
+        }
+        binding.includeDailyProfitCard.textViewKpiLabel.text = getString(R.string.kpi_label_daily_profit)
+        binding.includeDailyProfitCard.imageViewKpiIcon.setImageResource(R.drawable.ic_kpi_daily_profit_24) // Placeholder - define this
+        binding.includeDailyProfitCard.kpiCardViewRoot.setCardBackgroundColor(
+            ContextCompat.getColor(requireContext(), R.color.kpi_success_background_pale_green) // Placeholder - define this
+        )
+        // Optional: Navigation for profit cards can go to profit/loss report
+        binding.includeDailyProfitCard.kpiCardViewRoot.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_profitLossReportFragment)
+            } catch (e: Exception) {
+                handleNavError(getString(R.string.kpi_nav_error_daily_profit), e as IllegalArgumentException) // Placeholder
+            }
+        }
+
+
+        // Monthly Profit Card
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.monthlyProfit.collectLatest { profit ->
+                    binding.includeMonthlyProfitCard.textViewKpiCount.text = currencyFormat.format(profit)
+                }
+            }
+        }
+        binding.includeMonthlyProfitCard.textViewKpiLabel.text = getString(R.string.kpi_label_monthly_profit)
+        binding.includeMonthlyProfitCard.imageViewKpiIcon.setImageResource(R.drawable.ic_kpi_monthly_profit_24) // Placeholder - define this
+        binding.includeMonthlyProfitCard.kpiCardViewRoot.setCardBackgroundColor(
+            ContextCompat.getColor(requireContext(), R.color.kpi_info_background_pale_blue) // Placeholder - define this
+        )
+        binding.includeMonthlyProfitCard.kpiCardViewRoot.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_dashboardFragment_to_profitLossReportFragment)
+            } catch (e: Exception) {
+                handleNavError(getString(R.string.kpi_nav_error_monthly_profit), e as IllegalArgumentException) // Placeholder
             }
         }
     }
 
     private fun observeDashboardMetrics() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.availableToolsCount.collectLatest { count -> binding.textViewAvailableCountValue.text = count.toString() } }
-                launch { viewModel.rentedToolsCount.collectLatest { count -> binding.textViewRentedCountValue.text = count.toString() } }
-                launch { viewModel.overdueToolsCount.collectLatest { count -> binding.textViewOverdueCountValue.text = count.toString() } }
-                launch { viewModel.dailyProfit.collectLatest { profit -> binding.textViewDailyProfitValue.text = currencyFormat.format(profit) } }
-                launch { viewModel.monthlyProfit.collectLatest { profit -> binding.textViewMonthlyProfitValue.text = currencyFormat.format(profit) } }
-            }
-        }
+        // This function is now effectively replaced by the individual collectors in setupKpiCards()
+        // and the direct observation for non-KPI metrics if any were kept.
+        // If all metrics are now KPIs, this function can be removed or left empty.
+        // For now, let's clear it out as the metrics it observed are now handled by setupKpiCards.
     }
 
     private fun observeCalendarDecorators() {
