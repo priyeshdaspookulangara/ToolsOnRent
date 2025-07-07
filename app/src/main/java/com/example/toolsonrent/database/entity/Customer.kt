@@ -24,5 +24,6 @@ data class Customer(
         childColumns = ["referrerCustomerId"],
         onDelete = ForeignKey.SET_NULL // If referrer is deleted, set this field to null
     )
-    val referrerCustomerId: Int?
+    val referrerCustomerId: Int?,
+    val imageUri: String? = null // Added for customer image
 )

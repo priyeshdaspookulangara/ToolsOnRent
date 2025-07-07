@@ -42,6 +42,7 @@ class AddCustomerViewModel(application: Application) : AndroidViewModel(applicat
     val jobField = MutableStateFlow<String?>(null)
     val companyName = MutableStateFlow<String?>(null)
     val selectedReferrerId = MutableStateFlow<Int?>(null)
+    val imageUri = MutableStateFlow<String?>(null) // Added for customer image
 
     private val _phoneNumbers = MutableStateFlow<List<TemporaryPhoneNumber>>(listOf(TemporaryPhoneNumber())) // Start with one empty phone field
     val phoneNumbers: StateFlow<List<TemporaryPhoneNumber>> = _phoneNumbers.asStateFlow()
@@ -119,7 +120,8 @@ class AddCustomerViewModel(application: Application) : AndroidViewModel(applicat
             address = address.value?.ifBlank { null },
             jobField = jobField.value?.ifBlank { null },
             companyName = companyName.value?.ifBlank { null },
-            referrerCustomerId = selectedReferrerId.value
+            referrerCustomerId = selectedReferrerId.value,
+            imageUri = imageUri.value // Added for customer image
         )
 
         viewModelScope.launch {
