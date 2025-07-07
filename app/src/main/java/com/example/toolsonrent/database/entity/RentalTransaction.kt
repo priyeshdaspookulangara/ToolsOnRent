@@ -12,11 +12,11 @@ import java.util.Date
     tableName = "rental_transactions",
     foreignKeys = [
         ForeignKey(
-            entity = Tool::class,
-            parentColumns = ["id"],
-            childColumns = ["toolId"],
-            onDelete = ForeignKey.RESTRICT, // Prevents deleting a Tool if it has rental history
-            onUpdate = ForeignKey.CASCADE  // If Tool ID changes, update here
+            entity = ToolInstance::class, // Changed from Tool::class
+            parentColumns = ["instanceId"],    // Changed from "id"
+            childColumns = ["toolInstanceId"], // New field name
+            onDelete = ForeignKey.RESTRICT,
+            onUpdate = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = Customer::class,
@@ -27,7 +27,7 @@ import java.util.Date
         )
     ],
     indices = [
-        Index(value = ["toolId"]),
+        Index(value = ["toolInstanceId"]), // Changed from "toolId"
         Index(value = ["customerId"]),
         Index(value = ["rentalDate"]),
         Index(value = ["dueDate"])
@@ -37,11 +37,13 @@ import java.util.Date
 data class RentalTransaction(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val toolId: Int,
+    // val toolId: Int, // REMOVED
+    @ColumnInfo(index = true) // Added index explicitly as it's a FK
+    val toolInstanceId: Int, // ADDED
     val customerId: Int,
     val rentalDate: Date,
     val dueDate: Date,
     var returnDate: Date? = null, // Nullable, as it's set when the tool is returned. Default to null.
-    val rentalPricePerDay: Double, // Price of the tool per day at the time of this transaction
-    var notes: String? = null // Nullable, can be updated. Default to null.
+    val rentalPricePerDay: Double, // Price of the tool type per day at the time of this transaction
+    var notes: String? = null
 )

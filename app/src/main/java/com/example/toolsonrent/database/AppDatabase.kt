@@ -17,8 +17,8 @@ import com.example.toolsonrent.database.entity.ToolInstance // Added
 import android.util.Log
 
 @Database(
-    entities = [Tool::class, Customer::class, RentalTransaction::class, ToolInstance::class], // Added ToolInstance
-    version = 5, // Incremented from 4 to 5
+    entities = [Tool::class, Customer::class, RentalTransaction::class, ToolInstance::class],
+    version = 6, // Incremented from 5 to 6 due to RentalTransaction schema change
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)

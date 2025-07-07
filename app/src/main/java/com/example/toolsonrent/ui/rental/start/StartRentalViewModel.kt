@@ -7,12 +7,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.toolsonrent.database.AppDatabase
+import com.example.toolsonrent.database.dao.ToolInstanceDao
 import com.example.toolsonrent.database.entity.Customer
 import com.example.toolsonrent.database.entity.RentalTransaction
 import com.example.toolsonrent.database.entity.Tool
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import com.example.toolsonrent.database.entity.ToolInstance
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -20,6 +20,7 @@ class StartRentalViewModel(application: Application) : AndroidViewModel(applicat
 
     private val customerDao = AppDatabase.getInstance(application).customerDao()
     private val toolDao = AppDatabase.getInstance(application).toolDao()
+    private val toolInstanceDao: ToolInstanceDao = AppDatabase.getInstance(application).toolInstanceDao() // Added
     private val rentalTransactionDao = AppDatabase.getInstance(application).rentalTransactionDao()
 
     val allCustomers: StateFlow<List<Customer>> = customerDao.getAllCustomers()
@@ -29,30 +30,56 @@ class StartRentalViewModel(application: Application) : AndroidViewModel(applicat
             initialValue = emptyList()
         )
 
-    // availableTools now correctly filters by currentAvailableQuantity > 0 in ToolDao
-    val availableTools: StateFlow<List<Tool>> = toolDao.getAvailableTools()
+    // Renamed from availableTools to allToolTypes as it's for selecting the type first
+    val allToolTypes: StateFlow<List<Tool>> = toolDao.getAllTools() // Fetches all tool types
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = emptyList()
         )
 
-    private val _saveRentalResult = MutableLiveData<Result<Unit>>()
-    val saveRentalResult: LiveData<Result<Unit>> = _saveRentalResult
+    private val _selectedToolTypeId = MutableStateFlow<Int?>(null)
+
+    // Exposes available instances for the currently selected tool type
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val availableToolInstances: StateFlow<List<ToolInstance>> = _selectedToolTypeId
+        .flatMapLatest { typeId ->
+            if (typeId == null) {
+                flowOf(emptyList())
+            } else {
+                // Assuming "Available" is the status string for rentable instances
+                toolInstanceDao.getInstancesForToolType(typeId)
+                    .map { instances -> instances.filter { it.status == "Available" } }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSub Başkanlığı(5000L),
+            initialValue = emptyList()
+        )
+
+    fun setSelectedToolType(toolTypeId: Int?) {
+        _selectedToolTypeId.value = toolTypeId
+    }
+
+
+    private val _saveRentalResult = MutableLiveData<Result<Long>>() // Changed to Result<Long> for new transaction ID
+    val saveRentalResult: LiveData<Result<Long>> = _saveRentalResult
 
     fun confirmRental(
         selectedCustomer: Customer?,
-        selectedTool: Tool?,
+        selectedToolInstance: ToolInstance?, // Changed from selectedTool: Tool?
         rentalDate: Date?,
         dueDate: Date?,
-        notes: String?
+        notes: String?,
+        rentalPricePerDay: Double? // Price is now from the Tool Type, passed in
     ) {
         if (selectedCustomer == null) {
             _saveRentalResult.postValue(Result.failure(IllegalArgumentException("Please select a customer.")))
             return
         }
-        if (selectedTool == null) {
-            _saveRentalResult.postValue(Result.failure(IllegalArgumentException("Please select a tool.")))
+        if (selectedToolInstance == null) {
+            _saveRentalResult.postValue(Result.failure(IllegalArgumentException("Please select a specific item to rent.")))
             return
         }
         if (rentalDate == null) {
@@ -67,52 +94,47 @@ class StartRentalViewModel(application: Application) : AndroidViewModel(applicat
              _saveRentalResult.postValue(Result.failure(IllegalArgumentException("Due date cannot be before rental date.")))
             return
         }
+        if (rentalPricePerDay == null || rentalPricePerDay <= 0) {
+            _saveRentalResult.postValue(Result.failure(IllegalArgumentException("Invalid rental price.")))
+            return
+        }
 
-        // Updated availability check based on quantity
-        if (selectedTool.currentAvailableQuantity <= 0) {
-            Log.w("StartRentalViewModel", "Attempted to rent tool with zero available quantity: ${selectedTool.name} (ID: ${selectedTool.id})")
-            _saveRentalResult.postValue(Result.failure(IllegalStateException("Selected tool (${selectedTool.name}) has no available quantity. Please select another tool.")))
+        // Check instance status again, just in case
+        if (selectedToolInstance.status != "Available") {
+            Log.w("StartRentalViewModel", "Attempted to rent tool instance not in 'Available' state: ${selectedToolInstance.serialNumber ?: selectedToolInstance.instanceId} (Status: ${selectedToolInstance.status})")
+            _saveRentalResult.postValue(Result.failure(IllegalStateException("Selected item (${selectedToolInstance.serialNumber ?: selectedToolInstance.instanceId}) is no longer available. Please select another item.")))
             return
         }
 
         val transaction = RentalTransaction(
-            toolId = selectedTool.id,
+            toolInstanceId = selectedToolInstance.instanceId, // Changed
             customerId = selectedCustomer.id,
             rentalDate = rentalDate,
             dueDate = dueDate,
-            rentalPricePerDay = selectedTool.rentalPrice,
+            rentalPricePerDay = rentalPricePerDay, // Use passed-in price
             returnDate = null,
             notes = notes?.ifBlank { null }
         )
 
-        viewModelScope.launch {
-            try {
-                // Insert the rental transaction first
-                val transactionId = rentalTransactionDao.insert(transaction)
+        val updatedInstance = selectedToolInstance.copy(status = "Rented") // New status
 
-                if (transactionId > 0) { // Check if insert was successful (rowId > 0)
-                    // Then, attempt to decrement the tool's available quantity
-                    val rowsUpdated = toolDao.decrementAvailableQuantity(selectedTool.id, 1)
-                    if (rowsUpdated > 0) { // Check if decrement was successful (at least one row updated)
-                        _saveRentalResult.postValue(Result.success(Unit))
-                    } else {
-                        // Decrement failed (e.g., quantity became 0 concurrently by another operation)
-                        // This indicates a potential data inconsistency or race condition.
-                        // Ideal: Rollback the inserted transaction.
-                        Log.e("StartRentalVM", "Inserted transaction $transactionId but failed to decrement quantity for tool ${selectedTool.id}. Manual rollback might be needed or use @Transaction.")
-                        _saveRentalResult.postValue(Result.failure(
-                            IllegalStateException("Tool quantity became unavailable during the transaction process. Please try again or select a different tool.")
-                        ))
-                        // TODO: Implement actual rollback for transactionId if decrement fails after insert.
-                        // This would typically involve a @Transaction annotated method in a DAO that calls both insert and decrement.
-                    }
+        viewModelScope.launch {
+            // Ideally, these two operations (insert transaction, update instance) should be in a Room @Transaction
+            try {
+                val transactionId = rentalTransactionDao.insert(transaction)
+                if (transactionId > 0) {
+                    toolInstanceDao.update(updatedInstance)
+                    _saveRentalResult.postValue(Result.success(transactionId))
                 } else {
-                    Log.e("StartRentalVM", "Failed to insert rental transaction for tool ${selectedTool.id}.")
+                    Log.e("StartRentalVM", "Failed to insert rental transaction for instance ${selectedToolInstance.instanceId}.")
                     _saveRentalResult.postValue(Result.failure(Exception("Failed to record rental transaction.")))
                 }
             } catch (e: Exception) {
-                Log.e("StartRentalViewModel", "Error confirming rental for tool ${selectedTool.id}", e)
+                Log.e("StartRentalViewModel", "Error confirming rental for instance ${selectedToolInstance.instanceId}", e)
                 _saveRentalResult.postValue(Result.failure(e))
+                // TODO: Consider manual rollback if only one part of a conceptual transaction fails.
+                // For instance, if transaction insert succeeds but instance update fails.
+                // This is where Room @Transaction methods are beneficial.
             }
         }
     }

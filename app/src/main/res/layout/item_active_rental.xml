@@ -28,24 +28,47 @@
             tools:text="Tool Name Here" />
 
         <TextView
+            android:id="@+id/textViewToolInstanceIdentifierActiveItem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceSubtitle2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewToolNameActiveItem"
+            app:layout_constraintEnd_toEndOf="@id/textViewToolNameActiveItem"
+            android:layout_marginTop="2dp"
+            tools:text="SN: 12345XYZ" />
+
+        <TextView
             android:id="@+id/textViewCustomerNameActiveItem"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceSubtitle1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textViewToolNameActiveItem"
+            app:layout_constraintTop_toBottomOf="@id/textViewToolInstanceIdentifierActiveItem"
             app:layout_constraintEnd_toEndOf="@id/textViewToolNameActiveItem"
             android:layout_marginTop="4dp"
             tools:text="Customer: John Doe" />
+
+        <!-- ImageView for the tool type -->
+        <ImageView
+            android:id="@+id/imageViewToolTypeActiveItem"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"
+            tools:srcCompat="@drawable/ic_image_placeholder"
+            android:contentDescription="@string/tool_image_description"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewCustomerNameActiveItem" />
 
         <TextView
             android:id="@+id/textViewRentalDateActiveItem"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textViewCustomerNameActiveItem"
-            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toEndOf="@id/imageViewToolTypeActiveItem"
+            app:layout_constraintTop_toTopOf="@id/imageViewToolTypeActiveItem"
+            android:layout_marginStart="8dp"
             tools:text="Rented: 01/01/2023"/>
 
         <TextView
@@ -54,9 +77,10 @@
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/imageViewToolTypeActiveItem"
             app:layout_constraintTop_toBottomOf="@id/textViewRentalDateActiveItem"
             android:layout_marginTop="4dp"
+            android:layout_marginStart="8dp"
             tools:text="Due: 10/01/2023" />
 
         <Button

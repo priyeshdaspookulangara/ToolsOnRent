@@ -26,6 +26,10 @@ class ActiveRentalsFragment : Fragment() {
     private lateinit var viewModel: ActiveRentalsViewModel
     private lateinit var activeRentalsListAdapter: ActiveRentalsListAdapter
 
+    // To allow choosing a status on return
+    private val returnStatuses = arrayOf("Available", "Needs Maintenance", "Damaged")
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -40,8 +44,7 @@ class ActiveRentalsFragment : Fragment() {
         viewModel = ViewModelProvider(this)[ActiveRentalsViewModel::class.java]
 
         activeRentalsListAdapter = ActiveRentalsListAdapter { activeRentalInfo ->
-            // onItemReturnedClicked lambda now calls showConfirmReturnDialog
-            showConfirmReturnDialog(activeRentalInfo)
+            showConfirmReturnDialogWithOptions(activeRentalInfo) // Updated to new dialog
         }
 
         setupRecyclerView()
@@ -68,21 +71,40 @@ class ActiveRentalsFragment : Fragment() {
         }
     }
 
-    private fun showConfirmReturnDialog(activeRentalInfo: ActiveRentalInfo) {
+    private fun showConfirmReturnDialogWithOptions(activeRentalInfo: ActiveRentalInfo) {
+        val localizedReturnStatuses = returnStatuses.map { getLocalizedStatus(it) }.toTypedArray()
+        var selectedStatusKey = returnStatuses[0] // Default to "Available"
+
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Confirm Return")
-            .setMessage("Are you sure you want to mark '${activeRentalInfo.toolName}' (rented by ${activeRentalInfo.customerName}) as returned?")
-            .setNegativeButton("Cancel", null) // null listener dismisses the dialog
-            .setPositiveButton("Confirm Return") { _, _ ->
-                // User confirmed, call ViewModel to complete the rental
+            .setTitle(getString(R.string.confirm_return_title))
+            .setMessage(getString(R.string.confirm_return_message, activeRentalInfo.toolTypeName, activeRentalInfo.toolInstanceIdentifier, activeRentalInfo.customerName))
+            .setSingleChoiceItems(localizedReturnStatuses, 0) { _, which ->
+                selectedStatusKey = returnStatuses[which] // Map localized choice back to key
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.action_confirm_return) { _, _ ->
                 viewModel.completeRental(
                     transactionId = activeRentalInfo.transactionId,
-                    toolId = activeRentalInfo.toolId,
-                    returnDate = Date() // Use current date/time as the return date
+                    toolInstanceId = activeRentalInfo.toolInstanceId, // Use toolInstanceId
+                    returnDate = Date(),
+                    newStatus = selectedStatusKey // Pass the selected status
                 )
             }
             .show()
     }
+
+    // Helper to get localized status strings (similar to Add/EditToolInstanceFragment)
+    // This could be moved to a shared utility or string resource mapping if used in many places.
+    private fun getLocalizedStatus(statusKey: String): String {
+        return when (statusKey) {
+            "Available" -> getString(R.string.label_status_available)
+            "Needs Maintenance" -> getString(R.string.label_status_maintenance) // Assuming this string exists
+            "Damaged" -> getString(R.string.label_status_damaged)
+            // Add other statuses if needed
+            else -> statusKey
+        }
+    }
+
 
     private fun observeRentalCompletion() {
         viewModel.rentalCompletionResult.observe(viewLifecycleOwner) { result ->

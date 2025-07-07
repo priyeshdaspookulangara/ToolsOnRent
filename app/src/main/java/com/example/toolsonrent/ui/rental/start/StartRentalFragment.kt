@@ -35,7 +35,8 @@ class StartRentalFragment : Fragment() {
     private lateinit var viewModel: StartRentalViewModel
 
     private var selectedCustomer: Customer? = null
-    private var selectedTool: Tool? = null
+    private var selectedToolType: Tool? = null // Renamed from selectedTool
+    private var selectedToolInstance: ToolInstance? = null // Added
     private var rentalDate: Date? = null
     private var dueDate: Date? = null
 
@@ -55,7 +56,8 @@ class StartRentalFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupCustomerSelection()
-        setupToolSelection()
+        setupToolTypeSelection() // Renamed from setupToolSelection
+        setupToolInstanceSelection() // Added
         setupDatePickers()
         setupConfirmButton()
         observeSaveResult()
@@ -70,12 +72,11 @@ class StartRentalFragment : Fragment() {
                     binding.autoCompleteCustomerStartRental.setAdapter(adapter)
                     binding.autoCompleteCustomerStartRental.setOnItemClickListener { _, _, position, _ ->
                         selectedCustomer = customers[position]
-                        binding.textFieldLayoutCustomerStartRental.error = null // Clear error on selection
+                        binding.textFieldLayoutCustomerStartRental.error = null
                     }
                 }
             }
         }
-        // Clear selection if text changes and doesn't match a valid customer
         binding.autoCompleteCustomerStartRental.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val currentText = binding.autoCompleteCustomerStartRental.text.toString()
@@ -87,32 +88,77 @@ class StartRentalFragment : Fragment() {
         }
     }
 
-    private fun setupToolSelection() {
+    private fun setupToolTypeSelection() { // Renamed
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.availableTools.collect { tools ->
-                    // Display tool name and its price in the dropdown for clarity
-                    val toolDisplayList = tools.map { "${it.name} - $${String.format("%.2f", it.rentalPrice)}/day" }
+                viewModel.allToolTypes.collect { toolTypes -> // Changed to allToolTypes
+                    val toolDisplayList = toolTypes.map { "${it.name} - $${String.format(Locale.US, "%.2f", it.rentalPrice)}/day" }
                     val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, toolDisplayList)
                     binding.autoCompleteToolStartRental.setAdapter(adapter)
                     binding.autoCompleteToolStartRental.setOnItemClickListener { _, _, position, _ ->
-                        selectedTool = tools[position]
-                        binding.textViewSelectedToolPriceStartRental.text = "Price per day: $${String.format("%.2f", selectedTool?.rentalPrice)}"
-                        // Set only the name in the text field after selection for cleaner UI
-                        binding.autoCompleteToolStartRental.setText(selectedTool?.name, false)
-                        binding.textFieldLayoutToolStartRental.error = null // Clear error on selection
+                        selectedToolType = toolTypes[position] // Changed
+                        binding.textViewSelectedToolPriceStartRental.text = getString(R.string.price_per_day_dynamic, String.format(Locale.US, "%.2f", selectedToolType?.rentalPrice))
+                        binding.autoCompleteToolStartRental.setText(selectedToolType?.name, false)
+                        binding.textFieldLayoutToolStartRental.error = null
+
+                        // Trigger loading of instances for this type
+                        viewModel.setSelectedToolType(selectedToolType?.id)
+                        binding.textFieldLayoutToolInstanceStartRental.visibility = View.VISIBLE
+                        binding.autoCompleteToolInstanceStartRental.setText("", false) // Clear previous instance selection
+                        selectedToolInstance = null
+                        binding.textFieldLayoutToolInstanceStartRental.error = null
                     }
                 }
             }
         }
-        // Clear selection and price if text changes and doesn't match a valid tool
         binding.autoCompleteToolStartRental.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val currentText = binding.autoCompleteToolStartRental.text.toString()
-                 if (selectedTool?.name != currentText) {
+                 if (selectedToolType?.name != currentText) { // Changed
                     binding.autoCompleteToolStartRental.setText("", false)
-                    selectedTool = null
-                    binding.textViewSelectedToolPriceStartRental.text = "Price per day: -"
+                    selectedToolType = null
+                    selectedToolInstance = null
+                    binding.textViewSelectedToolPriceStartRental.text = getString(R.string.price_per_day_default)
+                    viewModel.setSelectedToolType(null) // Clear selected type in VM
+                    binding.textFieldLayoutToolInstanceStartRental.visibility = View.GONE
+                    binding.autoCompleteToolInstanceStartRental.setText("", false)
+                 }
+            }
+        }
+    }
+
+    private fun setupToolInstanceSelection() { // Added
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.availableToolInstances.collect { instances ->
+                    val instanceDisplayList = instances.map {
+                        if (!it.serialNumber.isNullOrBlank()) "SN: ${it.serialNumber}" else "ID: ${it.instanceId}"
+                    }
+                    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, instanceDisplayList)
+                    binding.autoCompleteToolInstanceStartRental.setAdapter(adapter)
+                    binding.autoCompleteToolInstanceStartRental.setOnItemClickListener { _, _, position, _ ->
+                        selectedToolInstance = instances[position]
+                        // Optionally, set the display text more explicitly if needed
+                        binding.autoCompleteToolInstanceStartRental.setText(instanceDisplayList[position], false)
+                        binding.textFieldLayoutToolInstanceStartRental.error = null
+                    }
+                    // If the selected tool type has no available instances, inform the user
+                    if (binding.textFieldLayoutToolInstanceStartRental.visibility == View.VISIBLE && instances.isEmpty()) {
+                        binding.textFieldLayoutToolInstanceStartRental.error = "No specific items available for this tool type."
+                        // Consider disabling the field or showing a more prominent message.
+                    } else if (binding.textFieldLayoutToolInstanceStartRental.visibility == View.VISIBLE) {
+                         binding.textFieldLayoutToolInstanceStartRental.error = null // Clear error if instances become available
+                    }
+                }
+            }
+        }
+        binding.autoCompleteToolInstanceStartRental.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val currentText = binding.autoCompleteToolInstanceStartRental.text.toString()
+                val currentInstanceDisplay = if (selectedToolInstance?.serialNumber.isNullOrBlank()) "ID: ${selectedToolInstance?.instanceId}" else "SN: ${selectedToolInstance?.serialNumber}"
+                if (selectedToolInstance != null && currentInstanceDisplay != currentText) {
+                    binding.autoCompleteToolInstanceStartRental.setText("", false)
+                    selectedToolInstance = null
                 }
             }
         }
@@ -184,17 +230,24 @@ class StartRentalFragment : Fragment() {
             // Clear previous errors first
             clearAllErrors()
 
-            viewModel.confirmRental(selectedCustomer, selectedTool, rentalDate, dueDate, notes)
+            viewModel.confirmRental(
+                selectedCustomer,
+                selectedToolInstance, // Pass selected instance
+                rentalDate,
+                dueDate,
+                notes,
+                selectedToolType?.rentalPrice // Pass rental price from the tool type
+            )
         }
     }
 
     private fun observeSaveResult() {
         viewModel.saveRentalResult.observe(viewLifecycleOwner) { result ->
             result.fold(
-                onSuccess = {
-                    Toast.makeText(requireContext(), "Rental confirmed successfully!", Toast.LENGTH_SHORT).show()
+                onSuccess = { transactionId -> // Now receives transactionId
+                    Toast.makeText(requireContext(), getString(R.string.rental_confirmed_success_id, transactionId), Toast.LENGTH_LONG).show()
                     clearForm()
-                    // findNavController().popBackStack() // Optionally navigate back
+                    // findNavController().popBackStack()
                 },
                 onFailure = { exception ->
                     Log.e("StartRentalFragment", "Error confirming rental", exception)
@@ -205,22 +258,27 @@ class StartRentalFragment : Fragment() {
     }
 
     private fun handleSaveError(exception: Throwable) {
-        val message = exception.message ?: "Unknown error occurred."
+        val message = exception.message ?: getString(R.string.unknown_error_occurred)
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
 
-        // More specific error handling based on exception message from ViewModel
         when {
-            message.contains("select a customer") -> binding.textFieldLayoutCustomerStartRental.error = "Required"
-            message.contains("select a tool") -> binding.textFieldLayoutToolStartRental.error = "Required"
-            message.contains("select a rental date") -> binding.textFieldLayoutRentalDateStartRental.error = "Required"
-            message.contains("select a due date") -> binding.textFieldLayoutDueDateStartRental.error = "Required"
-            message.contains("Due date cannot be before rental date") -> binding.textFieldLayoutDueDateStartRental.error = message
-            message.contains("tool is no longer available") -> {
-                binding.textFieldLayoutToolStartRental.error = "Tool unavailable"
-                // Optionally refresh the tool list or clear selection
-                selectedTool = null
-                binding.autoCompleteToolStartRental.setText("", false)
-                binding.textViewSelectedToolPriceStartRental.text = "Price per day: -"
+            message.contains("select a customer", ignoreCase = true) -> binding.textFieldLayoutCustomerStartRental.error = getString(R.string.error_field_required)
+            message.contains("select a tool type", ignoreCase = true) -> binding.textFieldLayoutToolStartRental.error = getString(R.string.error_field_required) // For tool type
+            message.contains("select a specific item", ignoreCase = true) -> binding.textFieldLayoutToolInstanceStartRental.error = getString(R.string.error_field_required) // For instance
+            message.contains("select a rental date", ignoreCase = true) -> binding.textFieldLayoutRentalDateStartRental.error = getString(R.string.error_field_required)
+            message.contains("select a due date", ignoreCase = true) -> binding.textFieldLayoutDueDateStartRental.error = getString(R.string.error_field_required)
+            message.contains("Due date cannot be before rental date", ignoreCase = true) -> binding.textFieldLayoutDueDateStartRental.error = message
+            message.contains("item is no longer available", ignoreCase = true) -> {
+                binding.textFieldLayoutToolInstanceStartRental.error = "Item unavailable"
+                // Clear instance selection and refresh instances
+                selectedToolInstance = null
+                binding.autoCompleteToolInstanceStartRental.setText("", false)
+                viewModel.setSelectedToolType(selectedToolType?.id) // Re-trigger instance fetch
+            }
+             message.contains("Invalid rental price", ignoreCase = true) -> {
+                // This error is less likely to be triggered by user directly if price comes from selectedToolType
+                Toast.makeText(requireContext(), "Error with rental price. Please re-select tool.", Toast.LENGTH_LONG).show()
+                binding.textFieldLayoutToolStartRental.error = "Re-select tool"
             }
         }
     }
@@ -228,6 +286,7 @@ class StartRentalFragment : Fragment() {
     private fun clearAllErrors() {
         binding.textFieldLayoutCustomerStartRental.error = null
         binding.textFieldLayoutToolStartRental.error = null
+        binding.textFieldLayoutToolInstanceStartRental.error = null // Added
         binding.textFieldLayoutRentalDateStartRental.error = null
         binding.textFieldLayoutDueDateStartRental.error = null
     }
@@ -236,10 +295,12 @@ class StartRentalFragment : Fragment() {
         clearAllErrors()
         binding.autoCompleteCustomerStartRental.setText("", false)
         binding.autoCompleteToolStartRental.setText("", false)
+        binding.autoCompleteToolInstanceStartRental.setText("", false) // Added
         selectedCustomer = null
-        selectedTool = null
+        selectedToolType = null // Changed
+        selectedToolInstance = null // Added
+        binding.textFieldLayoutToolInstanceStartRental.visibility = View.GONE // Added
 
-        // Reset rental date to today, clear due date
         val todayCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
         rentalDate = todayCalendar.time
         binding.editTextRentalDateStartRental.setText(dateFormat.format(rentalDate!!))
@@ -247,10 +308,11 @@ class StartRentalFragment : Fragment() {
         dueDate = null
         binding.editTextDueDateStartRental.setText("")
 
-        binding.textViewSelectedToolPriceStartRental.text = "Price per day: -"
+        binding.textViewSelectedToolPriceStartRental.text = getString(R.string.price_per_day_default)
         binding.editTextRentalNotesStartRental.text?.clear()
+        viewModel.setSelectedToolType(null) // Clear selection in VM
 
-        binding.autoCompleteCustomerStartRental.requestFocus() // Set focus to the first field
+        binding.autoCompleteCustomerStartRental.requestFocus()
     }
 
     override fun onDestroyView() {

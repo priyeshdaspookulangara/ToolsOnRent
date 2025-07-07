@@ -71,4 +71,21 @@
 
     <string name="price_per_day_format">%1$s / day</string>
     <string name="quantity_status_format">Available: %1$d / %2$d</string>
+
+    <string name="price_per_day_dynamic">Price per day: %1$s</string>
+    <string name="price_per_day_default">Price per day: -</string>
+    <string name="rental_confirmed_success_id">Rental confirmed! Transaction ID: %1$d</string>
+    <string name="unknown_error_occurred">An unknown error occurred.</string>
+    <string name="error_field_required">This field is required.</string>
+
+    <!-- Active Rentals / Return Strings -->
+    <string name="confirm_return_title">Confirm Return</string>
+    <string name="confirm_return_message">Are you sure you want to mark \'%1$s\' (%2$s), rented by %3$s, as returned?</string>
+    <string name="action_confirm_return">Confirm Return</string>
+    <string name="label_status_maintenance">Needs Maintenance</string>
+
+    <!-- Active Rentals List Item -->
+    <string name="customer_label_prefix">Customer: %1$s</string>
+    <string name="rented_date_prefix">Rented: %1$s</string>
+    <string name="due_date_prefix">Due: %1$s</string>
 </resources>

@@ -44,6 +44,24 @@
                 android:inputType="none"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- New TextInputLayout for selecting a specific Tool Instance -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutToolInstanceStartRental"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:hint="Select Specific Item/Instance"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <AutoCompleteTextView
+                android:id="@+id/autoCompleteToolInstanceStartRental"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
         <TextView
             android:id="@+id/textViewSelectedToolPriceStartRental"
             android:layout_width="match_parent"
