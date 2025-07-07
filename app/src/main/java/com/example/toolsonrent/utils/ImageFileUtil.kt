@@ -25,6 +25,7 @@ object ImageFileUtil {
     private const val TEMP_FILE_PREFIX = "TEMP_CAPTURE_"
     private const val FILE_PROVIDER_AUTHORITY_SUFFIX = ".fileprovider"
     const val PERMANENT_TOOL_IMAGES_SUBDIR = "tool_images"
+    const val PERMANENT_INSTANCE_IMAGES_SUBDIR = "instance_images" // Added
 
     fun createTempImageFile(context: Context, subDirName: String = DEFAULT_TEMP_IMAGE_CACHE_SUBDIR): File? {
         return try {
@@ -161,7 +162,8 @@ object ImageFileUtil {
             Log.e("ImageFileUtil", "Attempt to delete file outside app's specific directories: ${fileToDelete.absolutePath}. Deletion aborted."); return false
         }
         val parentDirName = fileToDelete.parentFile?.name
-        val knownImageDirs = listOf(PERMANENT_TOOL_IMAGES_SUBDIR, DEFAULT_TEMP_IMAGE_CACHE_SUBDIR)
+        // Added PERMANENT_INSTANCE_IMAGES_SUBDIR to knownImageDirs
+        val knownImageDirs = listOf(PERMANENT_TOOL_IMAGES_SUBDIR, PERMANENT_INSTANCE_IMAGES_SUBDIR, DEFAULT_TEMP_IMAGE_CACHE_SUBDIR)
         if (parentDirName == null || parentDirName !in knownImageDirs) {
             Log.e("ImageFileUtil", "Attempt to delete file outside designated image subdirectories. Path: ${fileToDelete.absolutePath}. Deletion aborted."); return false
         }

@@ -127,6 +127,7 @@ class EditToolFragment : Fragment() {
         setupSaveButton()
         setupImageSelectionButton()
         setupRemoveImageButton()
+        setupManageInstancesButton() // Added
         setupDeleteButton()
         observeUpdateResult()
         observeDeleteResult()
@@ -146,9 +147,14 @@ class EditToolFragment : Fragment() {
         binding.editTextToolNameEdit.setText(tool.name)
         binding.editTextToolDescriptionEdit.setText(tool.description ?: "")
         binding.editTextRentalPriceEdit.setText(String.format(Locale.US, "%.2f", tool.rentalPrice))
-        binding.editTextTotalQuantityEdit.setText(tool.totalQuantity.toString()) // Populate total quantity
-        binding.textViewCurrentAvailableQuantityEdit.text = tool.currentAvailableQuantity.toString() // Populate current available
-        // binding.switchAvailabilityEdit.isChecked = tool.isAvailable; // REMOVED
+        // Quantities are now managed by instances, so remove these lines
+        // binding.editTextTotalQuantityEdit.setText(tool.totalQuantity.toString())
+        // binding.textViewCurrentAvailableQuantityEdit.text = tool.currentAvailableQuantity.toString()
+
+        // Hide or update UI elements related to direct quantity editing
+        binding.textFieldLayoutTotalQuantityEdit.visibility = View.GONE
+        binding.textViewCurrentAvailableQuantityLabel.visibility = View.GONE
+        binding.textViewCurrentAvailableQuantityEdit.visibility = View.GONE
 
         selectedInternalImageFileUriString = tool.imageUri
         updateImagePreview()
@@ -159,31 +165,114 @@ class EditToolFragment : Fragment() {
             val name = binding.editTextToolNameEdit.text.toString().trim()
             val description = binding.editTextToolDescriptionEdit.text.toString().trim()
             val priceStr = binding.editTextRentalPriceEdit.text.toString().trim()
-            val totalQuantityStr = binding.editTextTotalQuantityEdit.text.toString().trim() // ADDED
-            // val isAvailable = binding.switchAvailabilityEdit.isChecked; // REMOVED
+            // totalQuantityStr is no longer directly edited here.
+            // It will be derived from instances. The ViewModel's updateTool method will need to change.
 
             clearAllErrors()
+            // ViewModel's updateTool signature will change - totalQuantityStr is removed
             viewModel.updateTool(
                 currentToolId = args.toolId,
                 name = name,
                 description = description,
                 priceStr = priceStr,
-                totalQuantityStr = totalQuantityStr, // ADDED
                 imageUri = selectedInternalImageFileUriString
-                // isAvailable argument removed
             )
         }
     }
 
-    private fun setupImageSelectionButton() { /* ... (existing logic from previous step) ... */ }
-    private fun showImageSourceDialogEdit() { /* ... (existing logic from previous step) ... */ }
-    private fun setupRemoveImageButton() { /* ... (existing logic from previous step) ... */ }
-    private fun showConfirmRemoveImageDialog() { /* ... (existing logic from previous step) ... */ }
-    private fun updateImagePreview() { /* ... (existing logic from previous step) ... */ }
-    private fun updateRemoveImageButtonVisibility() { /* ... (existing logic from previous step) ... */ }
-    private fun setupDeleteButton() { /* ... (existing logic from previous step) ... */ }
-    private fun observeUpdateResult() { /* ... (existing logic from previous step) ... */ }
-    private fun observeDeleteResult() { /* ... (existing logic from previous step) ... */ }
+    private fun setupManageInstancesButton() { // Added
+        binding.buttonManageInstances.setOnClickListener {
+            val action = EditToolFragmentDirections.actionEditToolFragmentToToolInstanceListFragment(args.toolId)
+            findNavController().navigate(action)
+        }
+    }
+
+    private fun setupImageSelectionButton() { binding.buttonSelectImageEdit.setOnClickListener { showImageSourceDialogEdit() }; binding.imageViewToolPreviewEdit.setOnClickListener { showImageSourceDialogEdit() } }
+    private fun showImageSourceDialogEdit() {
+         val options = arrayOf(getString(R.string.dialog_option_gallery), getString(R.string.dialog_option_camera))
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.dialog_title_select_image_source))
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> pickMediaLauncherEdit.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    1 -> {
+                        tempCameraImageFileEdit = ImageFileUtil.createTempImageFile(requireContext(), "TOOL_EDIT_TEMP_")
+                        tempCameraImageUriEdit = tempCameraImageFileEdit?.let {
+                            ImageFileUtil.getUriForFile(requireContext(), it)
+                        }
+                        if (tempCameraImageUriEdit != null) {
+                            takePictureLauncherEdit.launch(tempCameraImageUriEdit)
+                        } else {
+                            Toast.makeText(requireContext(), getString(R.string.error_creating_temp_file), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+    private fun setupRemoveImageButton() { binding.buttonRemoveImageEdit.setOnClickListener { showConfirmRemoveImageDialog() }; updateRemoveImageButtonVisibility() }
+    private fun showConfirmRemoveImageDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Remove Image?")
+            .setMessage("Are you sure you want to remove the image for this tool type?")
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                selectedInternalImageFileUriString = null // ViewModel will handle actual file deletion on save
+                updateImagePreview()
+                Toast.makeText(requireContext(), "Image will be removed on save.", Toast.LENGTH_SHORT).show()
+            }
+            .show()
+
+    }
+    private fun updateImagePreview() {
+        if (selectedInternalImageFileUriString != null) {
+            Glide.with(this).load(Uri.parse(selectedInternalImageFileUriString))
+                .placeholder(R.drawable.ic_image_placeholder)
+                .error(R.drawable.ic_broken_image)
+                .into(binding.imageViewToolPreviewEdit)
+        } else {
+            Glide.with(this).load(R.drawable.ic_image_placeholder) // Default placeholder
+                .into(binding.imageViewToolPreviewEdit)
+        }
+        updateRemoveImageButtonVisibility()
+    }
+    private fun updateRemoveImageButtonVisibility() { binding.buttonRemoveImageEdit.isVisible = selectedInternalImageFileUriString != null }
+
+    private fun setupDeleteButton() {
+        binding.buttonDeleteTool.setOnClickListener {
+             MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete Tool Type?")
+                .setMessage("Are you sure you want to delete this tool type and all its instances? This action cannot be undone.")
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.deleteTool() }
+                .show()
+        }
+    }
+    private fun observeUpdateResult() {
+         viewModel.updateResult.observe(viewLifecycleOwner) { result ->
+            result.fold(
+                onSuccess = {
+                    Toast.makeText(requireContext(), "Tool type updated successfully.", Toast.LENGTH_LONG).show()
+                    findNavController().popBackStack()
+                },
+                onFailure = { exception -> handleUpdateError(exception) }
+            )
+        }
+    }
+    private fun observeDeleteResult() {
+        viewModel.deleteResult.observe(viewLifecycleOwner) { result ->
+            result.fold(
+                onSuccess = {
+                    Toast.makeText(requireContext(), "Tool type deleted successfully.", Toast.LENGTH_LONG).show()
+                    // Consider where to navigate after deleting a tool type, e.g., back to tool list
+                    findNavController().popBackStack() // Or navigate to tool list
+                },
+                onFailure = { exception ->
+                    Toast.makeText(requireContext(), "Delete failed: ${exception.message}", Toast.LENGTH_LONG).show()
+                }
+            )
+        }
+    }
 
     private fun handleUpdateError(exception: Throwable) {
         val message = exception.message ?: "Unknown error."
@@ -194,10 +283,8 @@ class EditToolFragment : Fragment() {
                 binding.textFieldLayoutToolNameEdit.error = message
             } else if (message.contains("rental price", ignoreCase = true)) {
                 binding.textFieldLayoutRentalPriceEdit.error = message
-            } else if (message.contains("Total quantity", ignoreCase = true) ||
-                       message.contains("items rented", ignoreCase = true)) { // Check for both quantity error types
-                binding.textFieldLayoutTotalQuantityEdit.error = message
             }
+            // Removed quantity error handling here as it's no longer directly edited
         } else if (exception is IllegalStateException && message.contains("Invalid Tool ID", ignoreCase = true)) {
              Toast.makeText(requireContext(), "Error: Cannot update tool. Invalid ID.", Toast.LENGTH_LONG).show()
         }
@@ -207,7 +294,7 @@ class EditToolFragment : Fragment() {
         binding.textFieldLayoutToolNameEdit.error = null
         binding.textFieldLayoutToolDescriptionEdit.error = null
         binding.textFieldLayoutRentalPriceEdit.error = null
-        binding.textFieldLayoutTotalQuantityEdit.error = null // ADDED
+        // binding.textFieldLayoutTotalQuantityEdit.error = null // No longer directly edited
     }
 
     override fun onDestroyView() {
@@ -215,16 +302,7 @@ class EditToolFragment : Fragment() {
         _binding = null
     }
 
-    // Placeholder for methods that were not changed by this specific subtask, but are part of the full file.
-    // The actual overwrite will use the complete, correct versions of these.
-    // For example:
-    // private fun setupImageSelectionButton() { binding.buttonSelectImageEdit.setOnClickListener { showImageSourceDialogEdit() }; binding.imageViewToolPreviewEdit.setOnClickListener { showImageSourceDialogEdit() } }
-    // private fun showImageSourceDialogEdit() { ... } // As implemented previously
-    // private fun setupRemoveImageButton() { binding.buttonRemoveImageEdit.setOnClickListener { showConfirmRemoveImageDialog() }; updateRemoveImageButtonVisibility() }
-    // private fun showConfirmRemoveImageDialog() { ... } // As implemented previously
-    // private fun updateImagePreview() { ... } // As implemented previously
-    // private fun updateRemoveImageButtonVisibility() { binding.buttonRemoveImageEdit.isVisible = selectedInternalImageFileUriString != null }
-    // private fun setupDeleteButton() { binding.buttonDeleteTool.setOnClickListener { showConfirmDeleteToolDialog() } } // This showConfirmDeleteToolDialog is for tool, not image
-    // private fun observeUpdateResult() { ... } // As implemented previously
-    // private fun observeDeleteResult() { ... } // As implemented previously
+        super.onDestroyView()
+        _binding = null
+    }
 }

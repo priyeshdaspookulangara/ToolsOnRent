@@ -4,19 +4,21 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters // New import
-import com.example.toolsonrent.database.converter.DateConverter // New import
+import androidx.room.TypeConverters
+import com.example.toolsonrent.database.converter.DateConverter
 import com.example.toolsonrent.database.dao.CustomerDao
-import com.example.toolsonrent.database.dao.RentalTransactionDao // New import
+import com.example.toolsonrent.database.dao.RentalTransactionDao
 import com.example.toolsonrent.database.dao.ToolDao
+import com.example.toolsonrent.database.dao.ToolInstanceDao // Added
 import com.example.toolsonrent.database.entity.Customer
-import com.example.toolsonrent.database.entity.RentalTransaction // New import
+import com.example.toolsonrent.database.entity.RentalTransaction
 import com.example.toolsonrent.database.entity.Tool
-import android.util.Log // For logging in closeInstance
+import com.example.toolsonrent.database.entity.ToolInstance // Added
+import android.util.Log
 
 @Database(
-    entities = [Tool::class, Customer::class, RentalTransaction::class],
-    version = 4, // Incremented from 3 to 4
+    entities = [Tool::class, Customer::class, RentalTransaction::class, ToolInstance::class], // Added ToolInstance
+    version = 5, // Incremented from 4 to 5
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -24,7 +26,8 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun toolDao(): ToolDao
     abstract fun customerDao(): CustomerDao
-    abstract fun rentalTransactionDao(): RentalTransactionDao // New DAO abstract method
+    abstract fun rentalTransactionDao(): RentalTransactionDao
+    abstract fun toolInstanceDao(): ToolInstanceDao // Added
 
     companion object {
         const val DATABASE_NAME = "tools_on_rent_database" // Made public

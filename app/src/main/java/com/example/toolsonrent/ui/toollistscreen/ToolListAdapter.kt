@@ -10,14 +10,14 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.toolsonrent.R
-import com.example.toolsonrent.database.entity.Tool
+// import com.example.toolsonrent.database.entity.Tool // No longer directly using Tool here
 import com.example.toolsonrent.databinding.ItemToolBinding
 import java.text.NumberFormat
 import java.util.Locale
 
 class ToolListAdapter(
-    private val onToolClicked: (Tool) -> Unit
-) : ListAdapter<Tool, ToolListAdapter.ToolViewHolder>(ToolDiffCallback) {
+    private val onToolClicked: (ToolWithInstanceCounts) -> Unit // Changed to ToolWithInstanceCounts
+) : ListAdapter<ToolWithInstanceCounts, ToolListAdapter.ToolViewHolder>(ToolWithInstanceCountsDiffCallback) { // Changed
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToolViewHolder {
         val binding = ItemToolBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -25,73 +25,75 @@ class ToolListAdapter(
     }
 
     override fun onBindViewHolder(holder: ToolViewHolder, position: Int) {
-        val tool = getItem(position)
-        holder.bind(tool)
+        val toolWithCounts = getItem(position) // Changed
+        holder.bind(toolWithCounts) // Changed
     }
 
     inner class ToolViewHolder(
         private val binding: ItemToolBinding,
-        private val onToolClickedCallback: (Tool) -> Unit
+        private val onToolClickedCallback: (ToolWithInstanceCounts) -> Unit // Changed
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        private var currentTool: Tool? = null
+        private var currentToolWithCounts: ToolWithInstanceCounts? = null // Changed
 
         init {
             itemView.setOnClickListener {
-                currentTool?.let { tool ->
-                    onToolClickedCallback(tool)
+                currentToolWithCounts?.let { item -> // Changed
+                    onToolClickedCallback(item)
                 }
             }
         }
 
-        fun bind(tool: Tool) {
-            currentTool = tool
+        fun bind(toolWithCounts: ToolWithInstanceCounts) { // Changed
+            currentToolWithCounts = toolWithCounts // Changed
+            val tool = toolWithCounts.tool // Get the actual Tool entity
 
             binding.textViewToolNameItem.text = tool.name
 
             val format: NumberFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
             format.maximumFractionDigits = 2
-            binding.textViewRentalPriceItem.text = "${format.format(tool.rentalPrice)} / day"
+            binding.textViewRentalPriceItem.text = itemView.context.getString(R.string.price_per_day_format, format.format(tool.rentalPrice))
 
-            // New quantity status logic:
+
             binding.textViewToolQuantityStatusItem.text =
-                "Available: ${tool.currentAvailableQuantity} / ${tool.totalQuantity}"
+                itemView.context.getString(R.string.quantity_status_format, toolWithCounts.availableInstanceCount, toolWithCounts.totalInstanceCount)
 
-            if (tool.currentAvailableQuantity <= 0) {
+            if (toolWithCounts.availableInstanceCount <= 0) {
                 binding.textViewToolQuantityStatusItem.setTextColor(
-                    ContextCompat.getColor(itemView.context, R.color.status_rented_red) // Red for out of stock
+                    ContextCompat.getColor(itemView.context, R.color.status_rented_red)
                 )
             } else {
-                // Use a less prominent color for normal availability, e.g., green or default secondary text color
                 binding.textViewToolQuantityStatusItem.setTextColor(
                      ContextCompat.getColor(itemView.context, R.color.status_available_green)
                 )
-                // // Alternative: Use theme's default secondary text color
-                // val typedValue = TypedValue()
-                // itemView.context.theme.resolveAttribute(android.R.attr.textColorSecondary, typedValue, true)
-                // binding.textViewToolQuantityStatusItem.setTextColor(typedValue.data)
             }
 
-            // Image loading logic remains the same:
             if (tool.imageUri != null) {
                 Glide.with(itemView.context)
-                    .load(tool.imageUri)
-                    .placeholder(android.R.drawable.ic_menu_gallery)
-                    .error(R.drawable.ic_baseline_broken_image_24)
+                    .load(tool.imageUri) // Assuming imageUri is a String path/URL
+                    .placeholder(R.drawable.ic_image_placeholder) // Use consistent placeholder
+                    .error(R.drawable.ic_broken_image) // Use consistent error drawable
                     .into(binding.imageViewToolItem)
             } else {
-                binding.imageViewToolItem.setImageResource(android.R.drawable.ic_menu_gallery)
+                // Use consistent placeholder if no image URI
+                Glide.with(itemView.context)
+                    .load(R.drawable.ic_image_placeholder)
+                    .into(binding.imageViewToolItem)
             }
         }
     }
 
-    companion object ToolDiffCallback : DiffUtil.ItemCallback<Tool>() {
-        override fun areItemsTheSame(oldItem: Tool, newItem: Tool): Boolean {
-            return oldItem.id == newItem.id
+    companion object ToolWithInstanceCountsDiffCallback : DiffUtil.ItemCallback<ToolWithInstanceCounts>() { // Changed
+        override fun areItemsTheSame(oldItem: ToolWithInstanceCounts, newItem: ToolWithInstanceCounts): Boolean {
+            return oldItem.tool.id == newItem.tool.id // Compare by tool ID
         }
 
-        override fun areContentsTheSame(oldItem: Tool, newItem: Tool): Boolean {
-            return oldItem == newItem
+        override fun areContentsTheSame(oldItem: ToolWithInstanceCounts, newItem: ToolWithInstanceCounts): Boolean {
+            return oldItem == newItem // Compare full object
         }
     }
 }
+// Need to add/update string resources:
+// <string name="price_per_day_format">%1$s / day</string>
+// <string name="quantity_status_format">Available: %1$d / %2$d</string>
+// Used R.drawable.ic_image_placeholder and R.drawable.ic_broken_image for consistency.

@@ -116,7 +116,48 @@
         android:label="Edit Tool"
         tools:layout="@layout/fragment_edit_tool">
         <argument android:name="toolId" app:argType="integer" />
+        <action
+            android:id="@+id/action_editToolFragment_to_toolInstanceListFragment"
+            app:destination="@id/toolInstanceListFragment" />
     </fragment>
+
+    <!-- Tool Instance Fragments -->
+    <fragment
+        android:id="@+id/toolInstanceListFragment"
+        android:name="com.example.toolsonrent.ui.toolinstance.list.ToolInstanceListFragment"
+        android:label="@string/title_tool_instance_list"
+        tools:layout="@layout/fragment_tool_instance_list">
+        <argument
+            android:name="toolTypeId"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_toolInstanceListFragment_to_addToolInstanceFragment"
+            app:destination="@id/addToolInstanceFragment" />
+        <action
+            android:id="@+id/action_toolInstanceListFragment_to_editToolInstanceFragment"
+            app:destination="@id/editToolInstanceFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addToolInstanceFragment"
+        android:name="com.example.toolsonrent.ui.toolinstance.add.AddToolInstanceFragment"
+        android:label="@string/title_add_tool_instance"
+        tools:layout="@layout/fragment_add_tool_instance">
+        <argument
+            android:name="toolTypeId"
+            app:argType="integer" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/editToolInstanceFragment"
+        android:name="com.example.toolsonrent.ui.toolinstance.edit.EditToolInstanceFragment"
+        android:label="@string/title_edit_tool_instance"
+        tools:layout="@layout/fragment_edit_tool_instance">
+        <argument
+            android:name="instanceId"
+            app:argType="integer" />
+    </fragment>
+
     <fragment
         android:id="@+id/addCustomerFragment"
         android:name="com.example.toolsonrent.ui.customer.add.AddCustomerFragment"
