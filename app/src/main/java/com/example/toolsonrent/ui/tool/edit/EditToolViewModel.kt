@@ -47,12 +47,12 @@ class EditToolViewModel(
         name: String,
         description: String?,
         priceStr: String,
-        totalQuantityStr: String, // New parameter, replaced isAvailable
+        // totalQuantityStr: String, // REMOVED - Quantity now managed by instances
         imageUri: String?
     ) {
         val price = priceStr.toDoubleOrNull()
-        val newTotalQuantity = totalQuantityStr.toIntOrNull()
-        val oldTool = tool.value // Get the current state of the tool being edited for quantity calculations
+        // val newTotalQuantity = totalQuantityStr.toIntOrNull() // REMOVED
+        val oldTool = tool.value // Still useful for getting the original image URI for deletion logic
 
         // Validations
         if (name.isBlank()) {
@@ -63,13 +63,13 @@ class EditToolViewModel(
             _updateResult.postValue(Result.failure(IllegalArgumentException("Enter a valid positive rental price.")))
             return
         }
-        // Allow 0 for total quantity (e.g. tool is being phased out but existing rentals need to be managed)
-        if (newTotalQuantity == null || newTotalQuantity < 0) {
-            _updateResult.postValue(Result.failure(IllegalArgumentException("Total quantity must be a non-negative number.")))
-            return
-        }
+        // Quantity validation REMOVED
+        // if (newTotalQuantity == null || newTotalQuantity < 0) {
+        //     _updateResult.postValue(Result.failure(IllegalArgumentException("Total quantity must be a non-negative number.")))
+        //     return
+        // }
         if (currentToolId == 0) {
-             _updateResult.postValue(Result.failure(IllegalStateException("Invalid Tool ID for update.")))
+            _updateResult.postValue(Result.failure(IllegalStateException("Invalid Tool ID for update.")))
             return
         }
         if (oldTool == null) {
@@ -78,33 +78,41 @@ class EditToolViewModel(
             return
         }
 
-        // Calculate the number of items currently rented out
-        // This value should remain constant during this update operation.
-        val itemsRented = oldTool.totalQuantity - oldTool.currentAvailableQuantity
+        // Logic for quantity calculation REMOVED
+        // val itemsRented = oldTool.totalQuantity - oldTool.currentAvailableQuantity
+        // if (newTotalQuantity < itemsRented) { ... }
+        // val newCurrentAvailableQuantity = newTotalQuantity - itemsRented
 
-        // New total quantity cannot be less than the number of items currently rented.
-        if (newTotalQuantity < itemsRented) {
-            _updateResult.postValue(Result.failure(IllegalArgumentException(
-                "Total quantity ($newTotalQuantity) cannot be less than the number of items currently rented ($itemsRented)."
-            )))
-            return
-        }
-
-        // Calculate the new currentAvailableQuantity based on the new total and fixed rented items.
-        val newCurrentAvailableQuantity = newTotalQuantity - itemsRented
+        // If imageUri is different from oldTool.imageUri, and oldTool.imageUri was not null,
+        // then the old image file should be deleted. This should ideally be done *after* successful DB update.
+        // For now, the fragment handles telling ImageFileUtil to delete.
+        // The ViewModel could also manage this by comparing imageUri with oldTool.imageUri.
 
         val toolToSave = Tool(
             id = currentToolId,
             name = name,
             description = description?.ifBlank { null },
             rentalPrice = price,
-            totalQuantity = newTotalQuantity, // Use new total quantity
-            currentAvailableQuantity = newCurrentAvailableQuantity, // Use calculated new available quantity
-            imageUri = imageUri // Use the imageUri passed from the fragment (could be old or new)
+            // totalQuantity and currentAvailableQuantity are no longer part of Tool entity
+            imageUri = imageUri
         )
 
         viewModelScope.launch {
             try {
+                // If the image has changed, delete the old one.
+                // This is a simplified version; robust handling might involve transactions or post-update cleanup.
+                val oldImage = oldTool.imageUri
+                if (oldImage != null && oldImage != imageUri) {
+                    // It's generally better for the Fragment/View to instruct file deletion
+                    // as it has direct access to context for ImageFileUtil.
+                    // However, if ViewModel were to do it, it would need context or a helper.
+                    // For now, assuming Fragment handles the deletion based on user actions.
+                    // If `selectedInternalImageFileUriString` in Fragment is null and `oldImage` was not,
+                    // Fragment should have already triggered deletion or will do so.
+                    // If `selectedInternalImageFileUriString` is new, Fragment handles deletion of `oldImage`.
+                    Log.d("EditToolVM", "Image changed from $oldImage to $imageUri. Fragment should handle old file deletion.")
+                }
+
                 toolDao.update(toolToSave)
                 _updateResult.postValue(Result.success(Unit))
             } catch (e: Exception) {
@@ -114,5 +122,34 @@ class EditToolViewModel(
         }
     }
 
-    fun deleteTool() { /* ... (existing implementation from previous step) ... */ }
+    fun deleteTool() {
+        // When deleting a tool type, also delete its image file if it exists
+        // And also delete all associated ToolInstance images and ToolInstances (CASCADE should handle instances in DB)
+        viewModelScope.launch {
+            try {
+                val toolToDelete = tool.firstOrNull() // Get the current tool details
+                if (toolToDelete != null) {
+                    // Delete the main tool image
+                    toolToDelete.imageUri?.let {
+                        // Again, fragment is better suited for this.
+                        // If ViewModel were to do it, it needs more setup.
+                        Log.d("EditToolVM", "Tool type ${toolToDelete.id} deleted. Fragment should ensure image $it is deleted.")
+                    }
+                    // TODO: Add logic here or in Repository to delete all images of associated ToolInstances.
+                    // This requires fetching all instances, getting their image URIs, and deleting them.
+                    // For now, relying on Fragment/user to manage instance images before deleting type, or handle post-deletion.
+                    // The CASCADE delete on ToolInstance table will remove instance records.
+                    // We might need a new DAO method to get all image URIs for instances of a tool type.
+
+                    toolDao.delete(toolToDelete)
+                    _deleteResult.postValue(Result.success(Unit))
+                } else {
+                    _deleteResult.postValue(Result.failure(IllegalStateException("Tool to delete not found.")))
+                }
+            } catch (e: Exception) {
+                Log.e("EditToolVM", "Error deleting tool", e)
+                _deleteResult.postValue(Result.failure(e))
+            }
+        }
+    }
 }

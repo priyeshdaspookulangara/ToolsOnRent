@@ -16,7 +16,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 // import androidx.recyclerview.widget.DividerItemDecoration // Optional
 import com.example.toolsonrent.R // For R.id.action_...
-import com.example.toolsonrent.database.entity.Tool // For type in lambda
+// import com.example.toolsonrent.database.entity.Tool // No longer directly using Tool here
 import com.example.toolsonrent.databinding.FragmentToolListBinding
 import kotlinx.coroutines.launch
 
@@ -41,20 +41,15 @@ class ToolListFragment : Fragment() {
 
         viewModel = ViewModelProvider(this)[ToolListViewModel::class.java]
 
-        toolListAdapter = ToolListAdapter { selectedTool ->
+        toolListAdapter = ToolListAdapter { selectedToolWithCounts -> // Changed
             // Navigate to EditToolFragment, passing toolId
-            // This assumes a Safe Args action is defined in nav_graph.xml
-            // e.g., ToolListFragmentDirections.actionToolListFragmentToEditToolFragment(selectedTool.id)
             try {
                 val action = ToolListFragmentDirections
-                                 .actionToolListFragmentToEditToolFragment(selectedTool.id)
+                                 .actionToolListFragmentToEditToolFragment(selectedToolWithCounts.tool.id) // Use tool.id
                 findNavController().navigate(action)
-            } catch (e: Exception) { // Catch generic Exception as SafeArgs might not be generated yet
-                Log.e("ToolListFragment", "Navigation to EditToolFragment failed. Safe Args or NavGraph issue.", e)
+            } catch (e: Exception) {
+                Log.e("ToolListFragment", "Navigation to EditToolFragment failed.", e)
                 Toast.makeText(requireContext(), "Error: Could not open tool details.", Toast.LENGTH_SHORT).show()
-                // Fallback for development if Safe Args isn't immediately available:
-                // val bundle = Bundle().apply { putInt("toolId", selectedTool.id) }
-                // findNavController().navigate(R.id.action_toolListFragment_to_editToolFragment, bundle)
             }
         }
 
@@ -75,12 +70,11 @@ class ToolListFragment : Fragment() {
     private fun observeTools() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.allTools.collect { toolsList ->
-                    toolListAdapter.submitList(toolsList)
-                    // Update visibility for RecyclerView (if an empty state TextView were present, it would be toggled here too)
-                    binding.recyclerViewTools.isVisible = toolsList.isNotEmpty()
-                    // Example if textViewNoTools existed:
-                    // binding.textViewNoTools.isVisible = toolsList.isEmpty()
+                // Observe the new Flow that includes counts
+                viewModel.allToolsWithCounts.collect { toolsWithCountsList -> // Changed
+                    toolListAdapter.submitList(toolsWithCountsList) // Changed
+                    binding.recyclerViewTools.isVisible = toolsWithCountsList.isNotEmpty()
+                    binding.textViewNoToolsMessage.isVisible = toolsWithCountsList.isEmpty() // Added an empty message TextView
                 }
             }
         }

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.toolinstance.edit.EditToolInstanceFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Instance Image -->
+        <ImageView
+            android:id="@+id/imageViewInstancePreviewEdit"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_image_placeholder"
+            android:contentDescription="@string/tool_instance_image_description"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Button
+            android:id="@+id/buttonSelectInstanceImageEdit"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/select_image_for_instance"
+            app:icon="@drawable/ic_photo_library"
+            app:layout_constraintTop_toBottomOf="@id/imageViewInstancePreviewEdit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/guideline_vertical_image_buttons_edit"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/buttonRemoveInstanceImageEdit"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/remove_instance_image"
+            android:visibility="gone"
+            app:icon="@drawable/ic_delete"
+            app:layout_constraintTop_toTopOf="@id/buttonSelectInstanceImageEdit"
+            app:layout_constraintStart_toEndOf="@id/guideline_vertical_image_buttons_edit"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginStart="4dp"
+            tools:visibility="visible"/>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_vertical_image_buttons_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5"/>
+
+        <!-- Serial Number -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutInstanceSerialNumberEdit"
+            style="?attr/textInputFilledStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/serial_number"
+            app:layout_constraintTop_toBottomOf="@id/buttonSelectInstanceImageEdit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextInstanceSerialNumberEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapCharacters"
+                android:imeOptions="actionNext"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Status -->
+        <TextView
+            android:id="@+id/textViewStatusLabelEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/status"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            app:layout_constraintTop_toBottomOf="@id/textFieldLayoutInstanceSerialNumberEdit"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Spinner
+            android:id="@+id/spinnerInstanceStatusEdit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            app:layout_constraintTop_toBottomOf="@id/textViewStatusLabelEdit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Purchase Date -->
+         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutPurchaseDateEdit"
+            style="?attr/textInputFilledStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/purchase_date"
+            app:endIconMode="custom"
+            app:endIconDrawable="@drawable/ic_calendar"
+            app:layout_constraintTop_toBottomOf="@id/spinnerInstanceStatusEdit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextPurchaseDateEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:clickable="true"
+                android:inputType="date"
+                android:imeOptions="actionNext"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <!-- Notes -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textFieldLayoutInstanceNotesEdit"
+            style="?attr/textInputFilledStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/notes"
+            app:layout_constraintTop_toBottomOf="@id/textFieldLayoutPurchaseDateEdit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextInstanceNotesEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine|textCapSentences"
+                android:minLines="3"
+                android:gravity="top"
+                android:imeOptions="actionDone"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Save Button -->
+        <Button
+            android:id="@+id/buttonUpdateInstance"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/save_instance"
+            app:icon="@drawable/ic_save"
+            app:layout_constraintTop_toBottomOf="@id/textFieldLayoutInstanceNotesEdit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <!-- Delete Button -->
+        <Button
+            android:id="@+id/buttonDeleteInstance"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/delete_instance"
+            app:icon="@drawable/ic_delete"
+            android:textColor="?attr/colorError"
+            app:strokeColor="?attr/colorError"
+            app:iconTint="?attr/colorError"
+            app:layout_constraintTop_toBottomOf="@id/buttonUpdateInstance"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="16dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
+<!-- All drawables and strings should already exist from AddToolInstance and general setup -->
+<!-- Note: IDs are suffixed with 'Edit' to distinguish from Add fragment if both were hypothetically in memory, though not typical. -->
